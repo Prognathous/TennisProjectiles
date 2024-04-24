@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta charset="utf-8">
+		<title>Tennis Serve Projectiles</title>
+	</head>
+
+    <body onload="setupPage()">
+		<div style="width: 100%; overflow: hidden;">
+			<div style="width: 400px; float: left;">
+				<p>Gravity: -9.80665m/s²</p>			
+				<p>
+					Launch height:
+					<input id="launchHeight" type="number" min="0" max="4.0" value="2.718" step="0.001" style="vertical-align: middle;" onchange="onLaunchHeightChanged(this.value);"/>
+					(m) 
+					<span id="feetAndInches" />
+				</p>
+				<p>
+					Launch angle:
+					<input id="launchAngle" type="number" min="-30" max="30.0" value="-4.0" step="0.1" style="vertical-align: middle;" onchange="window.simulator.onLaunchAngleChanged(this.value);"/>
+					(deg)
+				</p>
+				<p>
+					Launch speed:
+					<input id="launchSpeed" type="number" min="50" max="163.0" value="120.0" step="0.5" style="vertical-align: middle;" onchange="window.simulator.onLaunchSpeedChanged(this.value);"/>
+					(mph)
+				</p>
+				<p>Serve offset: 0(m)</p>
+				<p>Ball mass: 0.057(kg)</p>			
+				<p>Ball radius: 0.0335(m)</p>			
+				<p>Drag coefficient: 0.55</p> <!-- https://www.researchgate.net/publication/313199404_The_drag_coefficient_of_tennis_balls -->			
+				<p>Air density "ρ": 1.21(kg/m³)</p>			
+				<p>Ball cross section area: 0.0034(m²)</p>
+			</div>
+			<div style="margin-left: 420px;">
+				<canvas id="simulator" width="640" height="480" style="top: 0px; cursor: -webkit-grab;"></canvas>
+				<p>
+					Landing distance: 
+					<span id="landingDist"></span>
+				</p>
+				<p>
+					Landing speed: 
+					<span id="landingSpeed"></span>
+				</p>
+			</div>			
+		</div>		
+		<script>
+			function onLaunchHeightChanged(launchHeight) {
+			
+				var decimalFeet = (launchHeight * 3.28084);
+				var feet = Math.floor(decimalFeet);
+				var inches = (decimalFeet - feet) * 12;
+				inches = Math.floor(inches * 10) / 10.0;
+							
+				var feetAndInches = document.getElementById("feetAndInches");			
+				feetAndInches.innerText = "(" + feet.toString() + "'" + inches + '"' + ")";
+				
+				window.simulator.onLaunchHeightChanged(launchHeight);
+			};
+		
+			function setupPage() {
+			
+				// TODO: We should be smarter about setting up the default values and triggering the first run of the ball flight simulation...
+				var launchHeightEl = document.getElementById("launchHeight");
+				launchHeightEl.onchange();
+			};
+		</script>
+		<script src="./projectiles.js"></script>		
+	</body>
+</html>
