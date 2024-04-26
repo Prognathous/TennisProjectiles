@@ -524,10 +524,9 @@ var simulator;
 		gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, pathBufferData, gl.DYNAMIC_DRAW);
 
-		
 		var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			INITIAL_BASELINEOFFS = 0.0,			// m from the centre line		
-			INITIAL_ANGLE = -3.85,				// degrees
+			INITIAL_ANGLE = -4.8,				// degrees
 			INITIAL_SPEED = 53.6448, 			// m/s				
 			GRAVITY = -9.80665,					// m/s²		
 			BALL_MASS = 0.057,					// kg
