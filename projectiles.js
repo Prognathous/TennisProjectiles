@@ -455,7 +455,7 @@ var simulator;
 	
 	var getNetGeometry = function() {
 		
-		var netData = plotPath();
+		var netData = [];
 		
 		// top net post
 		netData.push(0.0);
@@ -595,61 +595,69 @@ var simulator;
 			}
 		);
         gl.useProgram(linesProgram.getProgram());
-
         gl.enableVertexAttribArray(0);        
                 
-		var courtData = [];
-        var courtBuffer = gl.createBuffer();        		
-		this.rebuildCourtData = function () {
+		var courtData = getCourtGeometry(),
+			courtBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, courtBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(courtData), gl.STATIC_DRAW);
 			
-			courtData = getCourtGeometry();
-			if (courtBuffer)
-			{
-				gl.deleteBuffer(courtBuffer);
-			}
-			courtBuffer = gl.createBuffer();			
-			gl.bindBuffer(gl.ARRAY_BUFFER, courtBuffer);
-			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(courtData), gl.STATIC_DRAW);
+		var pathData = [];
+		var pathBuffer = gl.createBuffer();
+
+		// TODO: need to make this an explicit upper limit (ridiculous amount atm!)
+        var pathBufferData = new Float32Array(100000000);
+		gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, pathBufferData, gl.DYNAMIC_DRAW);
+			
+		this.plotBallPath = function(timeDelta) {
+			
+			pathData = plotPath();
+			
+			var pathDataArray = new Float32Array(pathData);
+			gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
+			gl.bufferSubData(gl.ARRAY_BUFFER, 0, pathDataArray);
 		};
-		this.rebuildCourtData();
 		
 		this.onLaunchHeightChanged = function (launchHeight) {
 			
 			INITIAL_HEIGHT = Number(launchHeight);
-			this.rebuildCourtData();
+			this.plotBallPath();
 		};
 		
 		this.onLaunchAngleChanged = function (launchAngleDeg) {
 			
 			INITIAL_ANGLE = Number(launchAngleDeg);
-			this.rebuildCourtData();
+			this.plotBallPath();
 		};
 		
 		this.onLaunchSpeedChanged = function (launchSpeedMPH) {
 			
 			// convert to m/s for the calculations
 			INITIAL_SPEED = Number(launchSpeedMPH) / 2.23694;
-			this.rebuildCourtData();
+			this.plotBallPath();
 		};
 			
         
         this.render = function (deltaTime, projectionMatrix, viewMatrix, cameraPosition) {
-			
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
             gl.viewport(0, 0, canvas.width, canvas.height);
             gl.enable(gl.DEPTH_TEST);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);            
 
-			// draw court lines
-            gl.bindBuffer(gl.ARRAY_BUFFER, courtBuffer);
-            gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
-			
+			// draw court lines            			
             gl.useProgram(linesProgram.getProgram());
             gl.uniformMatrix4fv(linesProgram.getUniformLocation('u_projectionMatrix'), false, projectionMatrix);
-            gl.uniformMatrix4fv(linesProgram.getUniformLocation('u_viewMatrix'), false, viewMatrix);
-            gl.drawArrays(gl.LINES, 0, courtData.length / 3);
-        };
+            gl.uniformMatrix4fv(linesProgram.getUniformLocation('u_viewMatrix'), false, viewMatrix);			
 
+			gl.bindBuffer(gl.ARRAY_BUFFER, courtBuffer);            
+			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
+            gl.drawArrays(gl.LINES, 0, courtData.length / 3);
+
+			gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
+			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
+			gl.drawArrays(gl.LINES, 0, pathData.length / 3);
+        };
     };
 
     var isWebGLSupported = function () {
