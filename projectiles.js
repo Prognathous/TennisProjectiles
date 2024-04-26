@@ -287,6 +287,8 @@ var simulator;
 
     var Camera = function () {
 		
+		var updated = false;
+		
         var azimuth = INITIAL_AZIMUTH,
             elevation = INITIAL_ELEVATION,
 
@@ -368,90 +370,7 @@ var simulator;
 
             'gl_FragColor = vec4(0.2, 0.2, 0.2, 1.0);',
         '}'
-    ].join('\n');
-	
-		
-	var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
-		INITIAL_BASELINEOFFS = 0.0,			// m from the centre line		
-		INITIAL_ANGLE = -3.85,				// degrees
-		INITIAL_SPEED = 53.6448, 			// m/s				
-		GRAVITY = -9.80665,					// m/s²		
-		BALL_MASS = 0.057,					// kg
-		BALL_RADIUS = 0.0335,				// 3.35cm		
-		DRAG_COEFFICIENT = 0.55,			// Cd (https://www.researchgate.net/publication/313199404_The_drag_coefficient_of_tennis_balls)
-		AIR_DENSITY = 1.21,					// "ρ" kg/m^3
-		BALL_CROSSSECTION_AREA = 0.0034; 	// "A" ms²
-
-	var getAirAcc = function(speed) {
-
-		// Fd = 0.5CdρAv2				
-		var Fd = 0.5 * DRAG_COEFFICIENT * AIR_DENSITY * BALL_CROSSSECTION_AREA * (speed * speed);		
-		// Acc = Fd / m
-		return Fd / BALL_MASS;
-	};
-	
-	var plotPath = function() {
-		
-		var path = [];
-		
-		var position = { 
-			x: -11.88,
-			y: INITIAL_HEIGHT,
-			z: -INITIAL_BASELINEOFFS
-		};
-				
-		// do basic Euler stuff for now
-		var t = 0;
-		// bit excessive, but whatever...
-		var inc_t = 0.0000001;
-		
-		var u_horiz = Math.cos((INITIAL_ANGLE * Math.PI) / 180.0) * INITIAL_SPEED;
-		var u_vert = Math.sin((INITIAL_ANGLE * Math.PI) / 180.0) * INITIAL_SPEED;
-		while (position.y > BALL_RADIUS)
-		{
-			path.push(position.x);
-			path.push(position.y);
-			path.push(position.z);
-			
-			// vertical component
-			// ------------------			
-			// Get distance travelled: s = ut + 1/2at^2
-			position.y += (u_vert * inc_t) + (0.5 * GRAVITY * (inc_t * inc_t));
-			// Update vertical velocity: v = u + at
-			u_vert = u_vert + (GRAVITY * inc_t);
-			// TODO: there is also air resistance to consider vertically but it should be negligible at this speed
-						
-			// horizontal component (needs to be x/z if ball not travelling directly along the x axis)
-			// --------------------
-			// get air resistance at this speed...
-			var airAcc = -getAirAcc(u_horiz);
-			// Get distance travelled: s = ut + 1/2at^2
-			position.x += (u_horiz * inc_t) + (0.5 * airAcc * (inc_t * inc_t));
-			// Update horizontal velocity: v = u + at
-			u_horiz = u_horiz + (airAcc * inc_t);
-						
-			path.push(position.x);
-			path.push(position.y);
-			path.push(position.z);
-			
-			// 0.91 = net height in the centre, 1.07 = net height at post, 5.02 = z offset from centre to top of post
-			// TODO: work out height of the net at this point, roughly (it sags instead of is in a straight, taut line... but the straight line will do as a rough estimate)
-			if ((Math.abs(position.x) <= BALL_RADIUS) && (position.y <= (0.91 + BALL_RADIUS)))
-				break;
-			
-			// don't keep going when we're going out of the court...
-			if (position.x >= 11.88)
-				break;
-		}
-				
-		var landingDist = position.x;
-		document.getElementById("landingDist").innerText = landingDist.toString() + " (m), in=" + ((landingDist > BALL_RADIUS) && (landingDist <= (6.4 + BALL_RADIUS))).toString();
-		
-		var finalSpeed = Math.sqrt((u_vert * u_vert) + (u_horiz * u_horiz));
-		document.getElementById("landingSpeed").innerText = (finalSpeed * 2.2369).toString() + " (mph)";
-		
-		return path;
-	};
+    ].join('\n');	
 	
 	var getNetGeometry = function() {
 		
@@ -581,12 +500,7 @@ var simulator;
         canvas.width = width;
         canvas.height = height;
 
-        var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');        
-
-        var updated = true;
-		
-        gl.clearColor.apply(gl, CLEAR_COLOR);
-        gl.enable(gl.DEPTH_TEST);
+        var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 
         var linesProgram = new programWrapper(gl,
             buildShader(gl, gl.VERTEX_SHADER, LINES_VERTEX_SOURCE),
@@ -594,52 +508,140 @@ var simulator;
                 'a_position': 0                
 			}
 		);
-        gl.useProgram(linesProgram.getProgram());
-        gl.enableVertexAttribArray(0);        
-                
+
 		var courtData = getCourtGeometry(),
 			courtBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, courtBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(courtData), gl.STATIC_DRAW);
 			
-		var pathData = [];
-		var pathBuffer = gl.createBuffer();
+		var pathTime = 0,
+			plottingPath = false,
+			pathData = [],
+			pathBuffer = gl.createBuffer();
 
 		// TODO: need to make this an explicit upper limit (ridiculous amount atm!)
         var pathBufferData = new Float32Array(100000000);
 		gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, pathBufferData, gl.DYNAMIC_DRAW);
+
+		
+		var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
+			INITIAL_BASELINEOFFS = 0.0,			// m from the centre line		
+			INITIAL_ANGLE = -3.85,				// degrees
+			INITIAL_SPEED = 53.6448, 			// m/s				
+			GRAVITY = -9.80665,					// m/s²		
+			BALL_MASS = 0.057,					// kg
+			BALL_RADIUS = 0.0335,				// 3.35cm		
+			DRAG_COEFFICIENT = 0.55,			// Cd (https://www.researchgate.net/publication/313199404_The_drag_coefficient_of_tennis_balls)
+			AIR_DENSITY = 1.21,					// "ρ" kg/m^3
+			BALL_CROSSSECTION_AREA = 0.0034; 	// "A" ms²
+	
+		this.getAirAcc = function(speed) {
+	
+			// Fd = 0.5CdρAv2				
+			var Fd = 0.5 * DRAG_COEFFICIENT * AIR_DENSITY * BALL_CROSSSECTION_AREA * (speed * speed);		
+			// Acc = Fd / m
+			return Fd / BALL_MASS;
+		};
+				
+		var u_horiz = 0,
+			u_vert = 0,
+			ballPosition = { x: 0, y: 0, z: 0 };
+		this.updateBallPath = function (deltaTime) {			
+								
+			// do basic Euler stuff for now... time increment probably still a bit excessive, but whatever...
+			var inc_t = 0.0001;
+			for (var t = 0; t <= deltaTime; t += inc_t)
+			{
+				pathData.push(ballPosition.x);
+				pathData.push(ballPosition.y);
+				pathData.push(ballPosition.z);
+				
+				// vertical component
+				// ------------------			
+				// Get distance travelled: s = ut + 1/2at^2
+				ballPosition.y += (u_vert * inc_t) + (0.5 * GRAVITY * (inc_t * inc_t));
+				// Update vertical velocity: v = u + at
+				u_vert = u_vert + (GRAVITY * inc_t);
+				// TODO: there is also air resistance to consider vertically but it should be negligible at this speed
+							
+				// horizontal component (needs to be x/z if ball not travelling directly along the x axis)
+				// --------------------
+				// get air resistance at this speed...
+				var airAcc = -this.getAirAcc(u_horiz);
+				// Get distance travelled: s = ut + 1/2at^2
+				ballPosition.x += (u_horiz * inc_t) + (0.5 * airAcc * (inc_t * inc_t));
+				// Update horizontal velocity: v = u + at
+				u_horiz = u_horiz + (airAcc * inc_t);
+							
+				pathData.push(ballPosition.x);
+				pathData.push(ballPosition.y);
+				pathData.push(ballPosition.z);
+				
+				// check for path end...
+				// TODO: work out height of the net at this point, roughly (it sags instead of is in a straight, taut line... but the straight line will do as a rough estimate)
+				// ball has hit the net, 0.91 = net height in the centre, 1.07 = net height at post, 5.02 = z offset from centre to top of post								
+				if ((ballPosition.y <= BALL_RADIUS) ||															// ball has hit the ground
+					(ballPosition.x >= (11.88 + BALL_RADIUS)) ||												// ball has gone past the baseline ball has hit the net
+					((Math.abs(ballPosition.x) <= BALL_RADIUS) && (ballPosition.y <= (0.91 + BALL_RADIUS))))	// ball has hit the net
+				{
+					var landingDist = ballPosition.x;
+					document.getElementById("landingDist").innerText = landingDist.toString() + " (m), in=" + ((landingDist > BALL_RADIUS) && (landingDist <= (6.4 + BALL_RADIUS))).toString();
+					
+					var finalSpeed = Math.sqrt((u_vert * u_vert) + (u_horiz * u_horiz));
+					document.getElementById("landingSpeed").innerText = (finalSpeed * 2.2369).toString() + " (mph)";
+					
+					plottingPath = false;
+					break;
+				}
+			}
 			
-		this.plotBallPath = function(timeDelta) {
-			
-			pathData = plotPath();
-			
+			// update the render data
 			var pathDataArray = new Float32Array(pathData);
 			gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
 			gl.bufferSubData(gl.ARRAY_BUFFER, 0, pathDataArray);
 		};
 		
+		this.startBallPathPlot = function() {
+			
+			ballPosition = { 
+				x: -11.88,
+				y: INITIAL_HEIGHT,
+				z: -INITIAL_BASELINEOFFS
+			};
+			
+			u_horiz = Math.cos((INITIAL_ANGLE * Math.PI) / 180.0) * INITIAL_SPEED;
+			u_vert = Math.sin((INITIAL_ANGLE * Math.PI) / 180.0) * INITIAL_SPEED;
+			
+			pathTime = 0;
+			plottingPath = true;
+			pathData = [];
+		};
+		
 		this.onLaunchHeightChanged = function (launchHeight) {
 			
 			INITIAL_HEIGHT = Number(launchHeight);
-			this.plotBallPath();
+			this.startBallPathPlot();
 		};
 		
 		this.onLaunchAngleChanged = function (launchAngleDeg) {
 			
 			INITIAL_ANGLE = Number(launchAngleDeg);
-			this.plotBallPath();
+			this.startBallPathPlot();
 		};
 		
 		this.onLaunchSpeedChanged = function (launchSpeedMPH) {
 			
 			// convert to m/s for the calculations
 			INITIAL_SPEED = Number(launchSpeedMPH) / 2.23694;
-			this.plotBallPath();
+			this.startBallPathPlot();
 		};
 			
         
         this.render = function (deltaTime, projectionMatrix, viewMatrix, cameraPosition) {
+
+			gl.clearColor.apply(gl, CLEAR_COLOR);
+			gl.enableVertexAttribArray(0);
 
             gl.viewport(0, 0, canvas.width, canvas.height);
             gl.enable(gl.DEPTH_TEST);
@@ -654,6 +656,9 @@ var simulator;
 			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
             gl.drawArrays(gl.LINES, 0, courtData.length / 3);
 
+			if (plottingPath) {
+				this.updateBallPath(deltaTime / 2);
+			}
 			gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
 			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
 			gl.drawArrays(gl.LINES, 0, pathData.length / 3);
