@@ -27,7 +27,16 @@
 						<input id="launchSpeed" type="number" min="50" max="163.0" value="120.0" step="0.5" style="vertical-align: middle;" onchange="window.simulator.onLaunchSpeedChanged(this.value);"/>
 						(mph)
 					</p>
-					<p>Serve offset: 0(m)</p>
+					<p>
+						Serve offset:
+						<input id="baselineOffset" type="number" min="0" max="4.11" value="2.0" step="0.1" style="vertical-align: middle;" onchange="window.simulator.onBaselineOffsetChanged(this.value);"/>
+						(m)
+					</p>
+					<p>
+						Target offset:
+						<input id="targetOffset" type="number" min="0" max="4.11" value="0.0" step="0.1" style="vertical-align: middle;" onchange="window.simulator.onTargetOffsetChanged(this.value);"/>
+						(m)
+					</p>
 					<p>Ball mass: 0.057(kg)</p>			
 					<p>Ball radius: 0.0335(m)</p>			
 					<p>Drag coefficient: 0.55</p> <!-- https://www.researchgate.net/publication/313199404_The_drag_coefficient_of_tennis_balls -->			
@@ -46,7 +55,7 @@
 					<span id="landingSpeed"></span>
 				</p>
 			</div>			
-		</div>		
+		</div>
 		<script>
 			function onLaunchHeightChanged(launchHeight) {
 			
@@ -64,12 +73,18 @@
 			function setupPage() {
 			
 				parameters.reset();
-			
-				// TODO: We should probably be smarter about setting up the default values and triggering the first run of the ball flight simulation...
-				var launchHeightEl = document.getElementById("launchHeight");
-				launchHeightEl.onchange();
+				
+				INITIAL_HEIGHT = Number(document.getElementById("launchHeight").value);
+				INITIAL_ANGLE = Number(document.getElementById("launchAngle").value);
+				INITIAL_SPEED = Number(document.getElementById("launchSpeed").value) / 2.23694;
+				BASELINE_OFFSET = Number(document.getElementById("baselineOffset").value);
+				
+				// kick off an initial path computation
+				onLaunchHeightChanged(INITIAL_HEIGHT);
 			};
 		</script>
-		<script src="./projectiles.js"></script>		
+		<script src="./matrices.js"></script>
+		<script src="./camera.js"></script>
+		<script src="./projectiles.js"></script>
 	</body>
 </html>
