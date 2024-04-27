@@ -29,12 +29,12 @@
 					</p>
 					<p>
 						Serve offset:
-						<input id="baselineOffset" type="number" min="0" max="4.11" value="2.0" step="0.1" style="vertical-align: middle;" onchange="window.simulator.onBaselineOffsetChanged(this.value);"/>
+						<input id="baselineOffset" type="number" min="0" max="4.11" value="1.0" step="0.1" style="vertical-align: middle;" onchange="window.simulator.onBaselineOffsetChanged(this.value);"/>
 						(m)
 					</p>
 					<p>
 						Target offset:
-						<input id="targetOffset" type="number" min="0" max="4.11" value="0.0" step="0.1" style="vertical-align: middle;" onchange="window.simulator.onTargetOffsetChanged(this.value);"/>
+						<input id="targetOffset" type="number" min="0" max="4.11" value="0.2" step="0.1" style="vertical-align: middle;" onchange="window.simulator.onTargetOffsetChanged(this.value);"/>
 						(m)
 					</p>
 					<p>Ball mass: 0.057(kg)</p>			
@@ -49,6 +49,10 @@
 				<p>
 					Landing distance: 
 					<span id="landingDist"></span>
+				</p>
+				<p>
+					Net clearance: 
+					<span id="netClearance"></span>
 				</p>
 				<p>
 					Landing speed: 

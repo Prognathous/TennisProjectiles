@@ -245,12 +245,20 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 		gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, pathBufferData, gl.DYNAMIC_DRAW);		
 	
-		this.getAirAcc = function(speed) {
+		this.getAirAcc = function (speed) {
 	
 			// Fd = 0.5CdρAv2				
 			var Fd = 0.5 * DRAG_COEFFICIENT * AIR_DENSITY * BALL_CROSSSECTION_AREA * (speed * speed);		
 			// Acc = Fd / m
 			return Fd / BALL_MASS;
+		};
+		
+		this.getNetHeight = function (zOffs) {
+			
+			// 0.91 = net height in the centre, 1.07 = net height at post, 5.02
+			var tanTheta = (1.07 - 0.91) / 5.02;
+			// the net sags instead of is in a straight, taut line... but the straight line will do as a rough estimate for now
+			return 0.91 + (zOffs * tanTheta);
 		};
 				
 		var u_horiz = 0,
@@ -294,16 +302,30 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 				pathData.push(ballPosition.y);
 				pathData.push(ballPosition.z);
 				
+				if ((ballPosition.x >= 0) && (ballPosition.x <= BALL_RADIUS)) {
+					
+					var netHeight = this.getNetHeight(ballPosition.z);
+					if (ballPosition.y <= (this.getNetHeight(ballPosition.z) + BALL_RADIUS)) {
+						
+						plottingPath = false;
+						break;
+					}
+					else {
+						
+						var clearanceEl = document.getElementById("netClearance");
+						if (clearanceEl.innerText == "") {
+							clearanceEl.innerText = (ballPosition.y - BALL_RADIUS - netHeight).toString() + " m";
+						}
+					}
+				}
+				
 				// check for path end...
-				// TODO: work out height of the net at this point, roughly (it sags instead of is in a straight, taut line... but the straight line will do as a rough estimate)
-				// ball has hit the net, 0.91 = net height in the centre, 1.07 = net height at post, 5.02 = z offset from centre to top of post								
-				if ((ballPosition.y <= BALL_RADIUS) ||															// ball has hit the ground
-					(ballPosition.x >= (11.88 + BALL_RADIUS)) ||												// ball has gone past the baseline ball has hit the net
-					((Math.abs(ballPosition.x) <= BALL_RADIUS) && (ballPosition.y <= (0.91 + BALL_RADIUS))))	// ball has hit the net
+				if ((ballPosition.y <= BALL_RADIUS) ||																					// ball has hit the ground
+					(ballPosition.x >= (11.88 + BALL_RADIUS)))		// ball has gone past the baseline ball has hit the net					
 				{
 					var landingDist = ballPosition.x;
 					document.getElementById("landingDist").innerText = landingDist.toString() + " (m), in=" + ((landingDist > BALL_RADIUS) && (landingDist <= (6.4 + BALL_RADIUS))).toString();
-					
+
 					var finalSpeed = Math.sqrt((u_vert * u_vert) + (u_horiz * u_horiz));
 					document.getElementById("landingSpeed").innerText = (finalSpeed * 2.2369).toString() + " (mph)";
 					
@@ -336,6 +358,10 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			pathTime = 0;
 			plottingPath = true;
 			pathData = [];
+			
+			document.getElementById("landingDist").innerText = "";
+			document.getElementById("netClearance").innerText = "";			
+			document.getElementById("landingSpeed").innerText = "";
 		};
 		
 		this.onLaunchHeightChanged = function (launchHeight) {
@@ -424,7 +450,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 
     var main = function () {
 		
-        var simulatorCanvas = document.getElementById('simulator');
+        var simulatorCanvas = document.getElementById("simulator");
 
         var camera = new Camera();		
 		
