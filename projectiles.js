@@ -57,21 +57,20 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
         return shader;
     };
 
-    var buildTexture = function (gl, url, unit, internalFormat, wrapS, wrapT, minFilter, magFilter) {
+    var buildTexture = function (gl, url, internalFormat, wrapS, wrapT, minFilter, magFilter) {
 		
 		var texture = gl.createTexture();
-        gl.activeTexture(gl.TEXTURE0 + unit);
+        gl.activeTexture(gl.TEXTURE0);
 		
 		var srcFormat = gl.RGBA;
 		var srcType = gl.UNSIGNED_BYTE;
 		
-		
-		const image = new Image();
-		image.crossOrigin = 'anonymous';
-		
-		image.addEventListener('error', function (e) {
-			alert("image load error: " + /*e.srcElement.src*/e.message);
-		});
+		var image = new Image();
+		// image.crossOrigin = '';
+		// image.addEventListener('error', function (e) {
+		// 	console.log(e.message);
+		// 	alert(url + " load error: " + JSON.stringify(e));
+		// });
 		image.addEventListener('load', function () {
 
 			gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -83,8 +82,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
 			gl.generateMipmap(gl.TEXTURE_2D);
 		});
-		image.src = "https://webglfundamentals.org/webgl/resources/f-texture.png";		
-		// image.src = url;
+		image.src = url;
 		
         return texture;
     };    
@@ -116,7 +114,6 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
         'void main (void) {',      
 
 			'gl_FragColor = texture2D(u_spriteMap, v_texCoord).rgba;',
-			// 'gl_FragColor = vec4(v_texCoord, 0, 1);',
         '}'
     ].join('\n');
 
@@ -287,8 +284,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 				'a_texCoord': 1
 			}
 		);
-		// (gl, url, unit, internalFormat, wrapS, wrapT, minFilter, magFilter)
-		var ballSpriteTexture = buildTexture(gl, "./BallSprite.png", 0, gl.RGBA, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.NEAREST, gl.LINEAR);
+		var ballSpriteTexture = buildTexture(gl, window.ballSprite, gl.RGBA, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.NEAREST, gl.LINEAR);
 		var ballDataBuffer = gl.createBuffer(),
 			ballDataArray = new Float32Array(5 * 6);
 		gl.bindBuffer(gl.ARRAY_BUFFER, ballDataBuffer);
@@ -499,6 +495,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			gl.activeTexture(gl.TEXTURE0);
 			gl.bindTexture(gl.TEXTURE_2D, ballSpriteTexture);
 			gl.enable(gl.BLEND);
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 							
 			var inverseView = [];
 			invertMatrix (inverseView, viewMatrix);
@@ -567,6 +564,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			
 			gl.disableVertexAttribArray(0);
 			gl.disableVertexAttribArray(1);
+			gl.disable(gl.BLEND);
         }
     };
 
