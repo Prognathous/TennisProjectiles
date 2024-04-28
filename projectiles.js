@@ -605,8 +605,8 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 		var FOV = (60 / 180) * Math.PI,
 			NEAR = 0.1,
 			FAR = 100,
-			MIN_ASPECT = 16 / 9;
-		var projectionMatrix = makePerspectiveMatrix(new Float32Array(16), FOV, MIN_ASPECT, NEAR, FAR);
+			ASPECT_RATIO = simulatorCanvas.width / simulatorCanvas.height;
+		var projectionMatrix = makePerspectiveMatrix(new Float32Array(16), FOV, ASPECT_RATIO, NEAR, FAR);
 		
 		var width = simulatorCanvas.width,
             height = simulatorCanvas.height;
