@@ -65,11 +65,15 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 		var srcFormat = gl.RGBA;
 		var srcType = gl.UNSIGNED_BYTE;
 		
-		const image = new Image();
-		image.crossOrigin = "anonymous";
 		
-		image.onload = () => {
-			
+		const image = new Image();
+		image.crossOrigin = 'anonymous';
+		
+		image.addEventListener('error', function (e) {
+			alert("image load error: " + /*e.srcElement.src*/e.message);
+		});
+		image.addEventListener('load', function () {
+
 			gl.bindTexture(gl.TEXTURE_2D, texture);
 			gl.texImage2D(gl.TEXTURE_2D, 0,	internalFormat,	srcFormat, srcType, image);
 				
@@ -77,8 +81,10 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrapT);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
-		};
-		image.src = url;
+			gl.generateMipmap(gl.TEXTURE_2D);
+		});
+		image.src = "https://webglfundamentals.org/webgl/resources/f-texture.png";		
+		// image.src = url;
 		
         return texture;
     };    
@@ -104,13 +110,13 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 	var SPRITE_FRAGMENT_SOURCE = [
         'precision highp float;',        
 		
-		'varying vec2 v_texCoord;',
-		
+		'varying vec2 v_texCoord;',		
 		'uniform sampler2D u_spriteMap;',
 		
         'void main (void) {',      
 
-			'gl_FragColor = texture2D(u_spriteMap, v_texCoord).rgba;',            
+			'gl_FragColor = texture2D(u_spriteMap, v_texCoord).rgba;',
+			// 'gl_FragColor = vec4(v_texCoord, 0, 1);',
         '}'
     ].join('\n');
 
@@ -281,7 +287,8 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 				'a_texCoord': 1
 			}
 		);
-		var ballSpriteTexture = buildTexture(gl, "./BallSprite.png", 0, gl.RGBA, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		// (gl, url, unit, internalFormat, wrapS, wrapT, minFilter, magFilter)
+		var ballSpriteTexture = buildTexture(gl, "./BallSprite.png", 0, gl.RGBA, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.NEAREST, gl.LINEAR);
 		var ballDataBuffer = gl.createBuffer(),
 			ballDataArray = new Float32Array(5 * 6);
 		gl.bindBuffer(gl.ARRAY_BUFFER, ballDataBuffer);
@@ -455,10 +462,11 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
         this.render = function (deltaTime, projectionMatrix, viewMatrix, cameraPosition) {
 
 			gl.clearColor.apply(gl, CLEAR_COLOR);
-			gl.enableVertexAttribArray(0);
+			gl.enableVertexAttribArray(0);			
 
             gl.viewport(0, 0, canvas.width, canvas.height);
             gl.enable(gl.DEPTH_TEST);
+			gl.disable(gl.CULL_FACE);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);            
 
 			// draw court lines            			
@@ -487,8 +495,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			gl.uniformMatrix4fv(spriteProgram.getUniformLocation('u_projectionMatrix'), false, projectionMatrix);
             gl.uniformMatrix4fv(spriteProgram.getUniformLocation('u_viewMatrix'), false, viewMatrix);
 			gl.uniform1i(spriteProgram.getUniformLocation('u_spriteMap'), 0);
-			
-			// gl.enable(gl.TEXTURE_2D);
+						
 			gl.activeTexture(gl.TEXTURE0);
 			gl.bindTexture(gl.TEXTURE_2D, ballSpriteTexture);
 			gl.enable(gl.BLEND);
@@ -515,45 +522,51 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			ballData.push(ballPosition.x + tl[0]);
 			ballData.push(ballPosition.y + tl[1]);
 			ballData.push(ballPosition.z + tl[2]);
-			ballData.push(0);
-			ballData.push(0);
+			ballData.push(0.0);
+			ballData.push(1.0);
 			
 			ballData.push(ballPosition.x + tr[0]);
 			ballData.push(ballPosition.y + tr[1]);
 			ballData.push(ballPosition.z + tr[2]);
-			ballData.push(1);
-			ballData.push(0);
+			ballData.push(1.0);
+			ballData.push(1.0);
 			
 			ballData.push(ballPosition.x + bl[0]);
 			ballData.push(ballPosition.y + bl[1]);
 			ballData.push(ballPosition.z + bl[2]);
-			ballData.push(0);
-			ballData.push(1);
+			ballData.push(0.0);
+			ballData.push(0.0);
 						
 			// tri 1
 			ballData.push(ballPosition.x + tr[0]);
 			ballData.push(ballPosition.y + tr[1]);
 			ballData.push(ballPosition.z + tr[2]);
-			ballData.push(1);
-			ballData.push(0);
+			ballData.push(1.0);
+			ballData.push(1.0);
 			
 			ballData.push(ballPosition.x + bl[0]);
 			ballData.push(ballPosition.y + bl[1]);
 			ballData.push(ballPosition.z + bl[2]);
-			ballData.push(0);
-			ballData.push(1);
+			ballData.push(0.0);
+			ballData.push(0.0);
 			
 			ballData.push(ballPosition.x + br[0]);
 			ballData.push(ballPosition.y + br[1]);
 			ballData.push(ballPosition.z + br[2]);
-			ballData.push(1);
-			ballData.push(1);
+			ballData.push(1.0);
+			ballData.push(0.0);
+			
+			gl.enableVertexAttribArray(0);
+			gl.enableVertexAttribArray(1);
 						
 			gl.bindBuffer(gl.ARRAY_BUFFER, ballDataBuffer);
-			gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(ballData));			
-			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 5 * SIZE_OF_FLOAT, 0);
-			gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 5 * SIZE_OF_FLOAT, 3 * SIZE_OF_FLOAT);
+			gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(ballData));
+			gl.vertexAttribPointer(gl.getAttribLocation(spriteProgram.getProgram(), 'a_position'), 3, gl.FLOAT, false, 5 * SIZE_OF_FLOAT, 0);
+			gl.vertexAttribPointer(gl.getAttribLocation(spriteProgram.getProgram(), 'a_texCoord'), 2, gl.FLOAT, false, 5 * SIZE_OF_FLOAT, 3 * SIZE_OF_FLOAT);
 			gl.drawArrays(gl.TRIANGLES, 0, 6);
+			
+			gl.disableVertexAttribArray(0);
+			gl.disableVertexAttribArray(1);
         }
     };
 
@@ -590,8 +603,8 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
         var camera = new Camera();		
 		
 		var FOV = (60 / 180) * Math.PI,
-			NEAR = 1,
-			FAR = 10000,
+			NEAR = 0.1,
+			FAR = 100,
 			MIN_ASPECT = 16 / 9;
 		var projectionMatrix = makePerspectiveMatrix(new Float32Array(16), FOV, MIN_ASPECT, NEAR, FAR);
 		
@@ -706,10 +719,10 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			switch (event.deltaMode) {
 				
 				case event.DOM_DELTA_PIXEL:
-					camera.zoom(event.deltaY * 0.01);
+					camera.zoom(event.deltaY * 0.005);
 				break;
 				case event.DOM_DELTA_LINE:
-					camera.zoom(event.deltaY * 0.1);
+					camera.zoom(event.deltaY * 0.05);
 				break;
 				case event.DOM_DELTA_PAGE:
 				default:

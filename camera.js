@@ -6,7 +6,7 @@ var Camera = function () {
         ORBIT_POINT = [0.0, 0.0, 0.0],
         INITIAL_YAW = 0.4,		
         INITIAL_PITCH = 0.2,        
-        MIN_PITCH = 0.01,
+        MIN_PITCH = 0.001,
         MAX_PITCH = Math.PI;
 		
 	var updated = false;
