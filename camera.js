@@ -1,18 +1,19 @@
 var Camera = function () {
 	
 	var CAMERA_DISTANCE = 20,
+		MIN_CAMERA_DISTANCE = 0.1,
+		MAX_CAMERA_DISTANCE = 30,
         ORBIT_POINT = [0.0, 0.0, 0.0],
-        INITIAL_AZIMUTH = 0.4,
-		MIN_AZIMUTH = -Math.PI,
-        MAX_AZIMUTH = Math.PI,
-        INITIAL_ELEVATION = 0.2,        
-        MIN_ELEVATION = 0.01,
-        MAX_ELEVATION = Math.PI;
+        INITIAL_YAW = 0.4,		
+        INITIAL_PITCH = 0.2,        
+        MIN_PITCH = 0.01,
+        MAX_PITCH = Math.PI;
 		
 	var updated = false;
 		
-    var azimuth = INITIAL_AZIMUTH,
-        elevation = INITIAL_ELEVATION,
+    var cameraDistance = CAMERA_DISTANCE,
+		yaw = INITIAL_YAW,
+        pitch = INITIAL_PITCH,
         viewMatrix = makeIdentityMatrix(new Float32Array(16)),
         position = new Float32Array(3),
         updated = true;
@@ -25,17 +26,22 @@ var Camera = function () {
         return Math.abs(x) < 0.000001 ? 0 : x;
     };	    
 		
-    this.changeAzimuth = function (deltaAzimuth) {
+    this.changeYaw = function (deltaYaw) {
 		
-        azimuth += deltaAzimuth;
-        azimuth = clamp(azimuth, MIN_AZIMUTH, MAX_AZIMUTH);
+        yaw += deltaYaw;
+		while (yaw > (Math.PI * 2)) {
+			yaw -= (Math.PI * 2);
+		}        
+		while (yaw < 0) {
+			yaw += (Math.PI * 2);
+		}
         updated = true;
     };
 	
-    this.changeElevation = function (deltaElevation) {
+    this.changePitch = function (deltaPitch) {
 		
-        elevation += deltaElevation;
-        elevation = clamp(elevation, MIN_ELEVATION, MAX_ELEVATION);
+        pitch += deltaPitch;
+        pitch = clamp(pitch, MIN_PITCH, MAX_PITCH);
         updated = true;
     };
 	
@@ -44,28 +50,38 @@ var Camera = function () {
         return position;
     };
 	
+	this.zoom = function (delta) {
+		
+		cameraDistance = clamp(cameraDistance + delta, MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE);
+		updated = true;
+	};
+	
     var orbitTranslationMatrix = makeIdentityMatrix(new Float32Array(16)),
         xRotationMatrix = new Float32Array(16),
         yRotationMatrix = new Float32Array(16),
         distanceTranslationMatrix = makeIdentityMatrix(new Float32Array(16));
+		
     this.getViewMatrix = function () {
 		
         if (updated) {
 			
             makeIdentityMatrix(viewMatrix);
-            makeXRotationMatrix(xRotationMatrix, elevation);
-            makeYRotationMatrix(yRotationMatrix, azimuth);
-            distanceTranslationMatrix[14] = -CAMERA_DISTANCE;
+            makeXRotationMatrix(xRotationMatrix, pitch);
+            makeYRotationMatrix(yRotationMatrix, yaw);
+			
+            distanceTranslationMatrix[14] = -cameraDistance;
             orbitTranslationMatrix[12] = -ORBIT_POINT[0];
             orbitTranslationMatrix[13] = -ORBIT_POINT[1];
             orbitTranslationMatrix[14] = -ORBIT_POINT[2];
+			
             premultiplyMatrix(viewMatrix, viewMatrix, orbitTranslationMatrix);
             premultiplyMatrix(viewMatrix, viewMatrix, yRotationMatrix);
             premultiplyMatrix(viewMatrix, viewMatrix, xRotationMatrix);
             premultiplyMatrix(viewMatrix, viewMatrix, distanceTranslationMatrix);
-            position[0] = CAMERA_DISTANCE * Math.sin(Math.PI / 2 - elevation) * Math.sin(-azimuth) + ORBIT_POINT[0];
-            position[1] = CAMERA_DISTANCE * Math.cos(Math.PI / 2 - elevation) + ORBIT_POINT[1];
-            position[2] = CAMERA_DISTANCE * Math.sin(Math.PI / 2 - elevation) * Math.cos(-azimuth) + ORBIT_POINT[2];
+			
+            position[0] = cameraDistance * Math.sin(Math.PI / 2 - pitch) * Math.sin(-yaw) + ORBIT_POINT[0];
+            position[1] = cameraDistance * Math.cos(Math.PI / 2 - pitch) + ORBIT_POINT[1];
+            position[2] = cameraDistance * Math.sin(Math.PI / 2 - pitch) * Math.cos(-yaw) + ORBIT_POINT[2];
             updated = false;
         }
         return viewMatrix;

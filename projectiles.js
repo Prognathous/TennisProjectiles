@@ -1,5 +1,6 @@
 var simulator;
 
+// TODO: Want a better location for these but it does mean the main html file can access them easily
 var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 	INITIAL_ANGLE = -4.8,				// degrees
 	INITIAL_SPEED = 53.6448, 			// m/s
@@ -314,7 +315,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 						
 						var clearanceEl = document.getElementById("netClearance");
 						if (clearanceEl.innerText == "") {
-							clearanceEl.innerText = (ballPosition.y - BALL_RADIUS - netHeight).toString() + " m";
+							clearanceEl.innerText = (ballPosition.y - BALL_RADIUS - netHeight).toString() + " (m)";
 						}
 					}
 				}
@@ -546,8 +547,8 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 
             if (mode === ORBITING) {
 				
-                camera.changeAzimuth((mouseX - lastMouseX) / width * SENSITIVITY);
-                camera.changeElevation((mouseY - lastMouseY) / height * SENSITIVITY);
+                camera.changeYaw((mouseX - lastMouseX) / width * SENSITIVITY);
+                camera.changePitch((mouseY - lastMouseY) / height * SENSITIVITY);
                 lastMouseX = mouseX;
                 lastMouseY = mouseY;
             }
@@ -561,9 +562,27 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 
         simulatorCanvas.addEventListener('mouseout', function (event) {
 			
-            var from = event.relatedTarget || event.toElement;
+            // var from = event.relatedTarget || event.toElement;
 			mode = NONE;
         });
+		
+		simulatorCanvas.addEventListener('wheel', function (event) {
+
+			event.preventDefault();
+			switch (event.deltaMode) {
+				
+				case event.DOM_DELTA_PIXEL:
+					camera.zoom(event.deltaY * 0.01);
+				break;
+				case event.DOM_DELTA_LINE:
+					camera.zoom(event.deltaY * 0.1);
+				break;
+				case event.DOM_DELTA_PAGE:
+				default:
+					console.log("Unhandled mouse wheel event");
+				break;
+			}
+		});
 
         var previousTime = (new Date()).getTime();
         var render = function render (currentTime) {

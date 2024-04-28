@@ -1,0 +1,13 @@
+1. Full areodynamics: Lift, magnus effect, air resistance on vertical, turbulence
+https://twu.tennis-warehouse.com/learning_center/aerodynamics2.php.
+2. Account for width of lines
+3. Allow alteration of:
+	ball mass
+	ball radius
+	drag coefficient https://www.researchgate.net/publication/313199404_The_drag_coefficient_of_tennis_balls
+	air density
+	ball cross section area
+4. Draw court polygonally	
+5. Draw ball sprite at the end of the path
+	Path becomes a ribbon
+
