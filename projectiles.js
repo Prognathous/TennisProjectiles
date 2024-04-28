@@ -381,10 +381,16 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 				
 				// check for path end...
 				if ((ballPosition.y <= BALL_RADIUS) ||																					// ball has hit the ground
-					(ballPosition.x >= (11.88 + BALL_RADIUS)))		// ball has gone past the baseline ball has hit the net					
+					(ballPosition.x >= (11.88 + BALL_RADIUS)))		// ball has gone far too far
 				{
+					// the ball has to have gone appreciably past the net on landing and be no further than the service line;
+					var ballIsIn = (ballPosition.x > BALL_RADIUS) &&
+						(ballPosition.x <= (6.4 + BALL_RADIUS)) &&
+						(ballPosition.z <= BALL_RADIUS) &&
+						(ballPosition.z >= -(4.11 + BALL_RADIUS));
+
 					var landingDist = ballPosition.x;
-					document.getElementById("landingDist").innerText = landingDist.toString() + " (m), in=" + ((landingDist > BALL_RADIUS) && (landingDist <= (6.4 + BALL_RADIUS))).toString();
+					document.getElementById("landingDist").innerText = landingDist.toString() + " (m), in=" + ballIsIn.toString();
 
 					var finalSpeed = Math.sqrt((u_vert * u_vert) + (u_horiz * u_horiz));
 					document.getElementById("landingSpeed").innerText = (finalSpeed * 2.2369).toString() + " (mph)";

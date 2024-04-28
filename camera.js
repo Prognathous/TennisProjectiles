@@ -1,11 +1,14 @@
 var Camera = function () {
 	
-	var CAMERA_DISTANCE = 20,
+    var //CAMERA_DISTANCE = 20,
+        CAMERA_DISTANCE = 7.1,
 		MIN_CAMERA_DISTANCE = 0.1,
 		MAX_CAMERA_DISTANCE = 30,
         ORBIT_POINT = [0.0, 0.0, 0.0],
-        INITIAL_YAW = 0.4,		
-        INITIAL_PITCH = 0.2,        
+        // INITIAL_YAW = 0.4,		
+        INITIAL_YAW = 4.6769353,
+        // INITIAL_PITCH = 0.2,
+        INITIAL_PITCH = 0.036416666666,
         MIN_PITCH = 0.001,
         MAX_PITCH = Math.PI;
 		
