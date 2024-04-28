@@ -17,8 +17,8 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 	
     'use strict';
 	
-	var SIZE_OF_FLOAT = 4;	
-	var CLEAR_COLOR = [0.9, 0.9, 0.9, 1.0];    
+	var SIZE_OF_FLOAT = 4;
+	var CLEAR_COLOR = [0.9, 0.9, 0.9, 1.0];
 
     var programWrapper = function (gl, vertexShader, fragmentShader, attributeLocations) {
 		
@@ -54,22 +54,65 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
         var shader = gl.createShader(type);
         gl.shaderSource(shader, source);
         gl.compileShader(shader);
-        // console.log(gl.getShaderInfoLog(shader));
         return shader;
     };
 
-    var buildTexture = function (gl, unit, format, type, width, height, data, wrapS, wrapT, minFilter, magFilter) {
+    var buildTexture = function (gl, url, unit, internalFormat, wrapS, wrapT, minFilter, magFilter) {
 		
-        var texture = gl.createTexture();
+		var texture = gl.createTexture();
         gl.activeTexture(gl.TEXTURE0 + unit);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, format, width, height, 0, format, type, data);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrapS);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrapT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
+		
+		var srcFormat = gl.RGBA;
+		var srcType = gl.UNSIGNED_BYTE;
+		
+		const image = new Image();
+		image.crossOrigin = "anonymous";
+		
+		image.onload = () => {
+			
+			gl.bindTexture(gl.TEXTURE_2D, texture);
+			gl.texImage2D(gl.TEXTURE_2D, 0,	internalFormat,	srcFormat, srcType, image);
+				
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrapS);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrapT);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
+		};
+		image.src = url;
+		
         return texture;
     };    
+	
+	var SPRITE_VERTEX_SOURCE = [
+		'precision highp float;',
+
+        'attribute vec3 a_position;',
+		'attribute vec2 a_texCoord;',
+
+        'uniform mat4 u_projectionMatrix;',
+        'uniform mat4 u_viewMatrix;',
+		
+		'varying vec2 v_texCoord;',
+
+        'void main (void) {',
+
+			'v_texCoord = a_texCoord;',
+            'gl_Position = u_projectionMatrix * u_viewMatrix * vec4(a_position, 1.0);',
+        '}'
+    ].join('\n');
+	
+	var SPRITE_FRAGMENT_SOURCE = [
+        'precision highp float;',        
+		
+		'varying vec2 v_texCoord;',
+		
+		'uniform sampler2D u_spriteMap;',
+		
+        'void main (void) {',      
+
+			'gl_FragColor = texture2D(u_spriteMap, v_texCoord).rgba;',            
+        '}'
+    ].join('\n');
 
     var LINES_VERTEX_SOURCE = [
         'precision highp float;',
@@ -92,7 +135,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 
             'gl_FragColor = vec4(0.2, 0.2, 0.2, 1.0);',
         '}'
-    ].join('\n');	
+    ].join('\n');
 	
 	var getNetGeometry = function() {
 		
@@ -230,6 +273,19 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
                 'a_position': 0                
 			}
 		);
+		
+		var spriteProgram = new programWrapper(gl,
+            buildShader(gl, gl.VERTEX_SHADER, SPRITE_VERTEX_SOURCE),
+            buildShader(gl, gl.FRAGMENT_SHADER, SPRITE_FRAGMENT_SOURCE), {
+                'a_position': 0,
+				'a_texCoord': 1
+			}
+		);
+		var ballSpriteTexture = buildTexture(gl, "./BallSprite.png", 0, gl.RGBA, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		var ballDataBuffer = gl.createBuffer(),
+			ballDataArray = new Float32Array(5 * 6);
+		gl.bindBuffer(gl.ARRAY_BUFFER, ballDataBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, ballDataArray, gl.DYNAMIC_DRAW);
 
 		var courtData = getCourtGeometry(),
 			courtBuffer = gl.createBuffer();
@@ -406,6 +462,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);            
 
 			// draw court lines            			
+			// ----------------
             gl.useProgram(linesProgram.getProgram());
             gl.uniformMatrix4fv(linesProgram.getUniformLocation('u_projectionMatrix'), false, projectionMatrix);
             gl.uniformMatrix4fv(linesProgram.getUniformLocation('u_viewMatrix'), false, viewMatrix);			
@@ -414,13 +471,90 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
             gl.drawArrays(gl.LINES, 0, courtData.length / 3);
 
+			// draw ball path
+			// --------------
 			if (plottingPath) {
 				this.updateBallPath(deltaTime / 2);
 			}
 			gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
 			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
 			gl.drawArrays(gl.LINES, 0, pathData.length / 3);
-        };
+			
+			
+			// draw ball sprite
+			// ----------------
+			gl.useProgram(spriteProgram.getProgram());
+			gl.uniformMatrix4fv(spriteProgram.getUniformLocation('u_projectionMatrix'), false, projectionMatrix);
+            gl.uniformMatrix4fv(spriteProgram.getUniformLocation('u_viewMatrix'), false, viewMatrix);
+			gl.uniform1i(spriteProgram.getUniformLocation('u_spriteMap'), 0);
+			
+			// gl.enable(gl.TEXTURE_2D);
+			gl.activeTexture(gl.TEXTURE0);
+			gl.bindTexture(gl.TEXTURE_2D, ballSpriteTexture);
+			gl.enable(gl.BLEND);
+							
+			var inverseView = [];
+			invertMatrix (inverseView, viewMatrix);
+			// no translation for this...
+			inverseView[12] = 0;
+            inverseView[13] = 0;
+            inverseView[14] = 0;
+			inverseView[15] = 1;
+			
+			var tl = [], 
+				tr = [], 
+				bl = [], 
+				br = [];
+			transformVectorByMatrix(tl, [ -BALL_RADIUS, -BALL_RADIUS, 0, 1 ], inverseView);
+			transformVectorByMatrix(tr, [  BALL_RADIUS, -BALL_RADIUS, 0, 1 ], inverseView);
+			transformVectorByMatrix(bl, [ -BALL_RADIUS,  BALL_RADIUS, 0, 1 ], inverseView);
+			transformVectorByMatrix(br, [  BALL_RADIUS,  BALL_RADIUS, 0, 1 ], inverseView);
+			
+			var ballData = [];			
+			// tri 0
+			ballData.push(ballPosition.x + tl[0]);
+			ballData.push(ballPosition.y + tl[1]);
+			ballData.push(ballPosition.z + tl[2]);
+			ballData.push(0);
+			ballData.push(0);
+			
+			ballData.push(ballPosition.x + tr[0]);
+			ballData.push(ballPosition.y + tr[1]);
+			ballData.push(ballPosition.z + tr[2]);
+			ballData.push(1);
+			ballData.push(0);
+			
+			ballData.push(ballPosition.x + bl[0]);
+			ballData.push(ballPosition.y + bl[1]);
+			ballData.push(ballPosition.z + bl[2]);
+			ballData.push(0);
+			ballData.push(1);
+						
+			// tri 1
+			ballData.push(ballPosition.x + tr[0]);
+			ballData.push(ballPosition.y + tr[1]);
+			ballData.push(ballPosition.z + tr[2]);
+			ballData.push(1);
+			ballData.push(0);
+			
+			ballData.push(ballPosition.x + bl[0]);
+			ballData.push(ballPosition.y + bl[1]);
+			ballData.push(ballPosition.z + bl[2]);
+			ballData.push(0);
+			ballData.push(1);
+			
+			ballData.push(ballPosition.x + br[0]);
+			ballData.push(ballPosition.y + br[1]);
+			ballData.push(ballPosition.z + br[2]);
+			ballData.push(1);
+			ballData.push(1);
+						
+			gl.bindBuffer(gl.ARRAY_BUFFER, ballDataBuffer);
+			gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(ballData));			
+			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 5 * SIZE_OF_FLOAT, 0);
+			gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 5 * SIZE_OF_FLOAT, 3 * SIZE_OF_FLOAT);
+			gl.drawArrays(gl.TRIANGLES, 0, 6);
+        }
     };
 
     var isWebGLSupported = function () {
