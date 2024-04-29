@@ -91,8 +91,9 @@
 			</div>			
 		</div>
 		<script>
-			function onLaunchHeightChanged(launchHeight) {
+			function updateImperialHeight() {
 			
+				var launchHeight = INITIAL_HEIGHT;
 				var decimalFeet = (launchHeight * 3.28084);
 				var feet = Math.floor(decimalFeet);
 				var inches = (decimalFeet - feet) * 12;
@@ -100,8 +101,13 @@
 							
 				var feetAndInches = document.getElementById("feetAndInches");			
 				feetAndInches.innerText = "(" + feet.toString() + "'" + inches + '"' + ")";
+			};
+		
+			function onLaunchHeightChanged(launchHeight) {				
 				
 				INITIAL_HEIGHT = Number(launchHeight);
+				updateImperialHeight();
+				
 				window.simulator.startBallPath();
 			};
 			
@@ -170,6 +176,7 @@
 				parameters.reset();
 				
 				INITIAL_HEIGHT = Number(document.getElementById("launchHeight").value);
+				updateImperialHeight();
 				INITIAL_ANGLE = Number(document.getElementById("launchAngle").value);
 				INITIAL_SPEED = Number(document.getElementById("launchSpeed").value) / 2.23694;
 				BASELINE_OFFSET = Number(document.getElementById("baselineOffset").value);
