@@ -12,6 +12,12 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 	DRAG_COEFFICIENT = 0.55,			// Cd 
 	AIR_DENSITY = 1.21,					// "ρ" kg/m^3
 	BALL_CROSSSECTION_AREA = 0.0034; 	// "A" ms²
+	
+var useBallCamera = false;
+function setUseBallCamera (selected) {
+			
+	useBallCamera = selected;
+};
 
 (function () {
 	
@@ -80,6 +86,11 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 		var u_horiz = 0,
 			u_vert = 0,
 			ballPosition = { x: 0, y: 0, z: 0 };
+			
+		this.getBallPosition = function () {
+
+			return [ ballPosition.x, ballPosition.y, ballPosition.z ];
+		};
 			
 		this.startBallPath = function() {
 			
@@ -191,7 +202,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			gl.bufferSubData(gl.ARRAY_BUFFER, 0, pathDataArray);
 		};
         
-        this.render = function (deltaTime, projectionMatrix, viewMatrix, cameraPosition) {
+        this.render = function (deltaTime, projectionMatrix, viewMatrix) {
 
 			gl.clearColor.apply(gl, CLEAR_COLOR);
 			gl.enableVertexAttribArray(0);			
@@ -310,14 +321,14 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 
 	// camera handling
     var NONE = 0,
-        ORBITING = 1,
-		MOUSE_SENSITIVITY = 1.0;	
+        ORBITING = 1;		
+	var MOUSE_SENSITIVITY = 1.0;	
 	
     var main = function () {
 		
         var simulatorCanvas = document.getElementById("simulator");
 
-        var camera = new Camera();		
+        var camera = new Camera();
 		
 		var FOV = (60 / 180) * Math.PI,
 			NEAR = 0.1,
@@ -378,7 +389,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
             var mousePosition = getMousePosition(event, simulatorCanvas);
             var mouseX = mousePosition.x,
                 mouseY = mousePosition.y;
-
+			
             var point = unproject(camera.getViewMatrix(), mouseX, mouseY, width, height);
             
 			mode = ORBITING;
@@ -393,7 +404,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
             var mousePosition = getMousePosition(event, simulatorCanvas),
                 mouseX = mousePosition.x,
                 mouseY = mousePosition.y;
-
+			
             var point = unproject(camera.getViewMatrix(), mouseX, mouseY, width, height);
 
             if (mode === ORBITING) {
@@ -453,8 +464,11 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			
             var deltaTime = (currentTime - previousTime) / 1000.0 || 0.0;
             previousTime = currentTime;
-
-            simulator.render(deltaTime, projectionMatrix, camera.getViewMatrix(), camera.getPosition());
+		
+			var cameraTarget = useBallCamera ? simulator.getBallPosition() : [ 0, 0, 0 ];
+			camera.setCameraTarget(cameraTarget);
+			
+            simulator.render(deltaTime, projectionMatrix, camera.getViewMatrix());
 
             requestAnimationFrame(render);
         };

@@ -5,91 +5,117 @@
 		<meta charset="utf-8">
 		<title>Tennis Serve Projectiles</title>
 		<link rel="icon" href="./BallSprite.png">
+		
+		<style>
+		#leftbox {
+            float: left;
+            width: 400px;
+            height: 100%;
+        }
+ 
+        #middlebox {
+            float: left;
+            width: 720px;
+            height: 100%;
+        }
+ 
+        #rightbox {
+            float: left;
+            width: 400px;
+            height: 100%;
+        }
+		</style>
 	</head>
 
     <body onload="setupPage()">
-		<div style="width: 100%; overflow: hidden;">						
+		<!-- div class="float-container" -->
+		<div id="leftbox">
 			<p>
-				<a href="https://twu.tennis-warehouse.com/learning_center/aerodynamics2.php" style="vertical-align: middle;">
+				<a href="https://twu.tennis-warehouse.com/learning_center/aerodynamics2.php">
 					https://twu.tennis-warehouse.com/learning_center/aerodynamics2.php
 				</a>
 			</p>
 			<p>
-				<a href="https://www.researchgate.net/publication/313199404_The_drag_coefficient_of_tennis_balls" style="vertical-align: middle;">
+				<a href="https://www.researchgate.net/publication/313199404_The_drag_coefficient_of_tennis_balls">
 					https://www.researchgate.net/publication/313199404_The_drag_coefficient_of_tennis_balls
 				</a>
 			</p>
-			<form id="parameters">
-				<div style="width: 400px; float: left;">
-					<p>
-						Launch height:
-						<input id="launchHeight" type="number" min="0" max="4.0" value="2.718" step="0.001" style="vertical-align: middle;" onchange="onLaunchHeightChanged(this.value);"/>
-						(m) 
-						<span id="feetAndInches" />
-					</p>
-					<p>
-						Launch angle:
-						<input id="launchAngle" type="number" min="-30" max="30.0" value="-4.8" step="0.1" style="vertical-align: middle;" onchange="onLaunchAngleChanged(this.value);"/>
-						(deg)
-					</p>
-					<p>
-						Launch speed:
-						<input id="launchSpeed" type="number" min="50" max="163.0" value="120.0" step="0.5" style="vertical-align: middle;" onchange="onLaunchSpeedChanged(this.value);"/>
-						(mph)
-					</p>
-					<p>
-						Serve offset:
-						<input id="baselineOffset" type="number" min="0" max="4.11" value="1.0" step="0.1" style="vertical-align: middle;" onchange="onBaselineOffsetChanged(this.value);"/>
-						(m)
-					</p>
-					<p>
-						Target offset:
-						<input id="targetOffset" type="number" min="0" max="4.11" value="0.2" step="0.1" style="vertical-align: middle;" onchange="onTargetOffsetChanged(this.value);"/>
-						(m)
-					</p>
-					<p>
-						Ball mass:
-						<input id="ballMass" type="number" min="0.01" max="0.07" value="0.057" step="0.001" style="vertical-align: middle;" onchange="onBallMassChanged(this.value);"/>
-						(kg)
-					</p>
-					<p>
-						Ball radius:
-						<input id="ballRadius" type="number" min="0.02" max="0.05" value="0.0335" step="0.0001" style="vertical-align: middle;" onchange="onBallRadiusChanged(this.value);"/>
-						(kg)
-					</p>
-					<p>
-						Ball cross section area: 
-						<span id="ballCrossSectionArea">0.00353</span>
-						(m²)
-					</p>
-					<p>						
-						Drag coefficient: 
-						<input id="dragCoefficient" type="number" min="0.5" max="0.7" value="0.55" step="0.01" style="vertical-align: middle;" onchange="onDragCoefficientChanged(this.value);"/>
-					</p>
-					<p>						
-						Air density "ρ": 
-						<input id="airDensity" type="number" min="0.0" max="3.0" value="1.21" step="0.01" style="vertical-align: middle;" onchange="onAirDensityChanged(this.value);"/>
-						(kg/m³)
-					</p>
-					<p>Gravity: -9.80665m/s²</p>
-				</div>
+			<form id="parameters">				
+				<p>
+					Launch height:
+					<input id="launchHeight" type="number" min="0" max="4.0" value="2.718" step="0.001" style="vertical-align: middle;" onchange="onLaunchHeightChanged(this.value);"/>
+					(m) 
+					<span id="feetAndInches" />
+				</p>
+				<p>
+					Launch angle:
+					<input id="launchAngle" type="number" min="-30" max="30.0" value="-4.8" step="0.1" style="vertical-align: middle;" onchange="onLaunchAngleChanged(this.value);"/>
+					(deg)
+				</p>
+				<p>
+					Launch speed:
+					<input id="launchSpeed" type="number" min="50" max="163.0" value="120.0" step="0.5" style="vertical-align: middle;" onchange="onLaunchSpeedChanged(this.value);"/>
+					(mph)
+				</p>
+				<p>
+					Serve offset:
+					<input id="baselineOffset" type="number" min="0" max="4.11" value="1.0" step="0.1" style="vertical-align: middle;" onchange="onBaselineOffsetChanged(this.value);"/>
+					(m)
+				</p>
+				<p>
+					Target offset:
+					<input id="targetOffset" type="number" min="0" max="4.11" value="0.2" step="0.1" style="vertical-align: middle;" onchange="onTargetOffsetChanged(this.value);"/>
+					(m)
+				</p>
+				<p>
+					Ball mass:
+					<input id="ballMass" type="number" min="0.01" max="0.07" value="0.057" step="0.001" style="vertical-align: middle;" onchange="onBallMassChanged(this.value);"/>
+					(kg)
+				</p>
+				<p>
+					Ball radius:
+					<input id="ballRadius" type="number" min="0.02" max="0.05" value="0.0335" step="0.0001" style="vertical-align: middle;" onchange="onBallRadiusChanged(this.value);"/>
+					(kg)
+				</p>
+				<p>
+					Ball cross section area: 
+					<span id="ballCrossSectionArea">0.00353</span>
+					(m²)
+				</p>
+				<p>						
+					Drag coefficient: 
+					<input id="dragCoefficient" type="number" min="0.5" max="0.7" value="0.55" step="0.01" style="vertical-align: middle;" onchange="onDragCoefficientChanged(this.value);"/>
+				</p>
+				<p>						
+					Air density "ρ": 
+					<input id="airDensity" type="number" min="0.0" max="3.0" value="1.21" step="0.01" style="vertical-align: middle;" onchange="onAirDensityChanged(this.value);"/>
+					(kg/m³)
+				</p>
+				<p>Gravity: -9.80665m/s²</p>
 			</form>
-			<div style="margin-left: 420px;">
-				<canvas id="simulator" width="640" height="480" style="top: 0px; cursor: -webkit-grab;"></canvas>
-				<p>
-					Landing distance: 
-					<span id="landingDist"></span>
-				</p>
-				<p>
-					Net clearance: 
-					<span id="netClearance"></span>
-				</p>
-				<p>
-					Landing speed: 
-					<span id="landingSpeed"></span>
-				</p>
-			</div>			
 		</div>
+		<div id="middlebox">
+			<canvas id="simulator" width="720" height="540" style="top: 0px; cursor: -webkit-grab;"></canvas>
+			<p>
+				Landing distance: 
+				<span id="landingDist"></span>
+			</p>
+			<p>
+				Net clearance: 
+				<span id="netClearance"></span>
+			</p>
+			<p>
+				Landing speed: 
+				<span id="landingSpeed"></span>
+			</p>
+		</div>
+		<div id="rightbox">
+			<form id="cameraSettings">
+				<input type="checkbox" id="ballCameraSelect" name="ballCam" onchange="setUseBallCamera(this.checked);" />
+				<label for="ballCam">Use ball camera</label>
+			</form>
+		</div>
+		
 		<script>
 			function updateImperialHeight() {
 			
@@ -174,6 +200,7 @@
 			function setupPage() {
 			
 				parameters.reset();
+				cameraSettings.reset();
 				
 				INITIAL_HEIGHT = Number(document.getElementById("launchHeight").value);
 				updateImperialHeight();

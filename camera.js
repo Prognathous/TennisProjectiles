@@ -4,7 +4,6 @@ var Camera = function () {
         CAMERA_DISTANCE = 7.1,
 		MIN_CAMERA_DISTANCE = 0.1,
 		MAX_CAMERA_DISTANCE = 30,
-        ORBIT_POINT = [0.0, 0.0, 0.0],
         // INITIAL_YAW = 0.4,		
         INITIAL_YAW = 4.6769353,
         // INITIAL_PITCH = 0.2,
@@ -48,6 +47,16 @@ var Camera = function () {
         updated = true;
     };
 	
+	var cameraTarget = [ 0, 0, 0 ];
+	this.setCameraTarget = function (target) {
+		
+		if ((target[0] != cameraTarget[0]) || (target[1] != cameraTarget[1]) || (target[2] != cameraTarget[2])) {
+			
+			cameraTarget = target;	
+			updated = true;
+		}
+	};
+	
     this.getPosition = function () {
 		
         return position;
@@ -73,18 +82,18 @@ var Camera = function () {
             makeYRotationMatrix(yRotationMatrix, yaw);
 			
             distanceTranslationMatrix[14] = -cameraDistance;
-            orbitTranslationMatrix[12] = -ORBIT_POINT[0];
-            orbitTranslationMatrix[13] = -ORBIT_POINT[1];
-            orbitTranslationMatrix[14] = -ORBIT_POINT[2];
+            orbitTranslationMatrix[12] = -cameraTarget[0];
+            orbitTranslationMatrix[13] = -cameraTarget[1];
+            orbitTranslationMatrix[14] = -cameraTarget[2];
 			
             premultiplyMatrix(viewMatrix, viewMatrix, orbitTranslationMatrix);
             premultiplyMatrix(viewMatrix, viewMatrix, yRotationMatrix);
             premultiplyMatrix(viewMatrix, viewMatrix, xRotationMatrix);
             premultiplyMatrix(viewMatrix, viewMatrix, distanceTranslationMatrix);
 			
-            position[0] = cameraDistance * Math.sin(Math.PI / 2 - pitch) * Math.sin(-yaw) + ORBIT_POINT[0];
-            position[1] = cameraDistance * Math.cos(Math.PI / 2 - pitch) + ORBIT_POINT[1];
-            position[2] = cameraDistance * Math.sin(Math.PI / 2 - pitch) * Math.cos(-yaw) + ORBIT_POINT[2];
+            position[0] = cameraDistance * Math.sin(Math.PI / 2 - pitch) * Math.sin(-yaw) + cameraTarget[0];
+            position[1] = cameraDistance * Math.cos(Math.PI / 2 - pitch) + cameraTarget[1];
+            position[2] = cameraDistance * Math.sin(Math.PI / 2 - pitch) * Math.cos(-yaw) + cameraTarget[2];
             updated = false;
         }
         return viewMatrix;
