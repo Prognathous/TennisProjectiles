@@ -18,249 +18,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
     'use strict';
 	
 	var SIZE_OF_FLOAT = 4;
-	var CLEAR_COLOR = [0.9, 0.9, 0.9, 1.0];
-
-    var programWrapper = function (gl, vertexShader, fragmentShader, attributeLocations) {
-		
-        var program = gl.createProgram();
-        gl.attachShader(program, vertexShader);
-        gl.attachShader(program, fragmentShader);
-        for (var attributeName in attributeLocations) {
-			
-            gl.bindAttribLocation(program, attributeLocations[attributeName], attributeName);
-        }
-        gl.linkProgram(program);
-		
-        var uniformLocations = {};
-        var numberOfUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-        for (var i = 0; i < numberOfUniforms; i += 1) {
-			
-            var activeUniform = gl.getActiveUniform(program, i);
-			var uniformLocation = gl.getUniformLocation(program, activeUniform.name);
-            uniformLocations[activeUniform.name] = uniformLocation;
-        }
-
-        this.getUniformLocation = function (name) {
-            return uniformLocations[name];
-        };
-
-        this.getProgram = function () {
-            return program;
-        }
-    };
-
-    var buildShader = function (gl, type, source) {
-		
-        var shader = gl.createShader(type);
-        gl.shaderSource(shader, source);
-        gl.compileShader(shader);
-        return shader;
-    };
-
-    var buildTexture = function (gl, url, internalFormat, wrapS, wrapT, minFilter, magFilter) {
-		
-		var texture = gl.createTexture();
-        gl.activeTexture(gl.TEXTURE0);
-		
-		var srcFormat = gl.RGBA;
-		var srcType = gl.UNSIGNED_BYTE;
-		
-		var image = new Image();
-		// image.crossOrigin = '';
-		// image.addEventListener('error', function (e) {
-		// 	console.log(e.message);
-		// 	alert(url + " load error: " + JSON.stringify(e));
-		// });
-		image.addEventListener('load', function () {
-
-			gl.bindTexture(gl.TEXTURE_2D, texture);
-			gl.texImage2D(gl.TEXTURE_2D, 0,	internalFormat,	srcFormat, srcType, image);
-				
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrapS);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrapT);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
-			gl.generateMipmap(gl.TEXTURE_2D);
-		});
-		image.src = url;
-		
-        return texture;
-    };    
-	
-	var SPRITE_VERTEX_SOURCE = [
-		'precision highp float;',
-
-        'attribute vec3 a_position;',
-		'attribute vec2 a_texCoord;',
-
-        'uniform mat4 u_projectionMatrix;',
-        'uniform mat4 u_viewMatrix;',
-		
-		'varying vec2 v_texCoord;',
-
-        'void main (void) {',
-
-			'v_texCoord = a_texCoord;',
-            'gl_Position = u_projectionMatrix * u_viewMatrix * vec4(a_position, 1.0);',
-        '}'
-    ].join('\n');
-	
-	var SPRITE_FRAGMENT_SOURCE = [
-        'precision highp float;',        
-		
-		'varying vec2 v_texCoord;',		
-		'uniform sampler2D u_spriteMap;',
-		
-        'void main (void) {',      
-
-			'gl_FragColor = texture2D(u_spriteMap, v_texCoord).rgba;',
-        '}'
-    ].join('\n');
-
-    var LINES_VERTEX_SOURCE = [
-        'precision highp float;',
-
-        'attribute vec3 a_position;',
-
-        'uniform mat4 u_projectionMatrix;',
-        'uniform mat4 u_viewMatrix;',
-
-        'void main (void) {',
-
-            'gl_Position = u_projectionMatrix * u_viewMatrix * vec4(a_position, 1.0);',
-        '}'
-    ].join('\n');
-
-    var LINES_FRAGMENT_SOURCE = [
-        'precision highp float;',        
-		
-        'void main (void) {',            
-
-            'gl_FragColor = vec4(0.2, 0.2, 0.2, 1.0);',
-        '}'
-    ].join('\n');
-	
-	var getNetGeometry = function() {
-		
-		var netData = [];
-		
-		// top net post
-		netData.push(0.0);
-		netData.push(0.0);
-		netData.push(5.02);
-		// p1
-		netData.push(0.0);
-		netData.push(1.07);	// net height at the post
-		netData.push(5.02);
-		
-		// bottom net post
-		netData.push(0.0);
-		netData.push(0.0);
-		netData.push(-5.02);
-		// p1
-		netData.push(0.0);
-		netData.push(1.07);	// net height at the post
-		netData.push(-5.02);
-		
-		// net cord top half
-		netData.push(0.0);
-		netData.push(0.91); // net height in the centre		
-		netData.push(0.0)
-		// p1
-		netData.push(0.0);
-		netData.push(1.07);
-		netData.push(5.02);	// net height in the centre
-		
-		// net cord bottom half
-		netData.push(0.0);
-		netData.push(0.91); // net height in the centre		
-		netData.push(0.0)
-		// p1
-		netData.push(0.0);
-		netData.push(1.07);	// net height at the post
-		netData.push(-5.02);
-		
-		// centre line drop
-		netData.push(0.0);
-		netData.push(0.91); // net height in the centre		
-		netData.push(0.0)
-		// p1
-		netData.push(0.0);
-		netData.push(0.1);
-		netData.push(0.0);		
-		
-		return netData;
-	};
-	
-	var getCourtGeometry = function() {
-		
-		var courtData = getNetGeometry();
-		
-		// centre service line
-		courtData.push(-6.4);
-		courtData.push(0);
-		courtData.push(0);
-		// p1
-		courtData.push(6.4);
-		courtData.push(0);
-		courtData.push(0);
-		
-		// left service line
-		courtData.push(-6.4);
-		courtData.push(0);
-		courtData.push(-4.11);
-		// p1
-		courtData.push(-6.4);
-		courtData.push(0);
-		courtData.push(4.11);
-		
-		// right service line
-		courtData.push(6.4);
-		courtData.push(0);
-		courtData.push(-4.11);
-		// p1
-		courtData.push(6.4);
-		courtData.push(0);
-		courtData.push(4.11);
-		
-		// left side line
-		courtData.push(-11.88); // 5.48 + 6.4
-		courtData.push(0);
-		courtData.push(-4.11);
-		// p1
-		courtData.push(11.88);
-		courtData.push(0);
-		courtData.push(-4.11);
-		
-		// right side line
-		courtData.push(-11.88); // 5.48 + 6.4
-		courtData.push(0);
-		courtData.push(4.11);
-		// p1
-		courtData.push(11.88);
-		courtData.push(0);
-		courtData.push(4.11);
-		
-		// left baseline
-		courtData.push(-11.88); // 5.48 + 6.4
-		courtData.push(0);
-		courtData.push(-4.11);
-		// p1
-		courtData.push(-11.88);
-		courtData.push(0);
-		courtData.push(4.11);
-		
-		// right baseline
-		courtData.push(11.88); // 5.48 + 6.4
-		courtData.push(0);
-		courtData.push(-4.11);
-		// p1
-		courtData.push(11.88);
-		courtData.push(0);
-		courtData.push(4.11);
-		
-		return courtData;
-	};
+	var CLEAR_COLOR = [0.9, 0.9, 0.9, 1.0];    
 
     var Simulator = function (canvas, width, height) {
 		
@@ -304,14 +62,12 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
         var pathBufferData = new Float32Array(100000000);
 		gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, pathBufferData, gl.DYNAMIC_DRAW);		
-	
-		this.getAirAcc = function (speed) {
-	
+		
+		this.getAirResistance = function (speed) {
+			
 			// Fd = 0.5CdρAv2				
-			var Fd = 0.5 * DRAG_COEFFICIENT * AIR_DENSITY * BALL_CROSSSECTION_AREA * (speed * speed);		
-			// Acc = Fd / m
-			return Fd / BALL_MASS;
-		};
+			return (0.5 * DRAG_COEFFICIENT * AIR_DENSITY * BALL_CROSSSECTION_AREA * (speed * speed));
+		};		
 		
 		this.getNetHeight = function (zOffs) {
 			
@@ -328,33 +84,37 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 								
 			// do basic Euler stuff for now... time increment probably still a bit excessive, but whatever...
 			var inc_t = 0.0001;
-			for (var t = 0; t <= deltaTime; t += inc_t)
-			{
+			for (var t = 0; t <= deltaTime; t += inc_t) {
+
 				pathData.push(ballPosition.x);
 				pathData.push(ballPosition.y);
 				pathData.push(ballPosition.z);
 				
 				// vertical component
-				// ------------------			
+				// ------------------							
+				var vertAirResistance = this.getAirResistance(u_vert),
+					weight = GRAVITY * BALL_MASS;
+				var vertAcc = (vertAirResistance + weight) / BALL_MASS;
+				console.log(vertAcc.toString());
+
 				// Get distance travelled: s = ut + 1/2at^2
-				ballPosition.y += (u_vert * inc_t) + (0.5 * GRAVITY * (inc_t * inc_t));
+				ballPosition.y += (u_vert * inc_t) + (0.5 * vertAcc * (inc_t * inc_t));
+				
 				// Update vertical velocity: v = u + at
 				u_vert = u_vert + (GRAVITY * inc_t);
-				// TODO: there is also air resistance to consider vertically but it should be negligible at this speed
 							
 				// horizontal component (needs to be x/z if ball not travelling directly along the x axis)
 				// --------------------
-				// get air resistance at this speed...
-				var airAcc = -this.getAirAcc(u_horiz);
+				var airDec = -this.getAirResistance(u_horiz) / BALL_MASS;
 				// Get distance travelled: s = ut + 1/2at^2
-				var horizDist = (u_horiz * inc_t) + (0.5 * airAcc * (inc_t * inc_t));
+				var horizDist = (u_horiz * inc_t) + (0.5 * airDec * (inc_t * inc_t));
 				// Update horizontal velocity: v = u + at
-				u_horiz = u_horiz + (airAcc * inc_t);
+				u_horiz = u_horiz + (airDec * inc_t);
 				
+				// Move the ball on the horizontal plane
 				var theta = Math.atan(-(BASELINE_OFFSET + TARGET_OFFSET) / (11.88 + 6.4));
 				var xdist = horizDist * Math.cos(theta);
-				var zdist = horizDist * Math.sin(theta);
-				// move the ball on the horizontal plane
+				var zdist = horizDist * Math.sin(theta);				
 				ballPosition.x += horizDist * Math.cos(theta);
 				ballPosition.z += horizDist * Math.sin(theta);
 							
@@ -362,6 +122,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 				pathData.push(ballPosition.y);
 				pathData.push(ballPosition.z);
 				
+				// check if the ball has hit the net...
 				if ((ballPosition.x >= 0) && (ballPosition.x <= BALL_RADIUS)) {
 					
 					var netHeight = this.getNetHeight(ballPosition.z);
@@ -572,34 +333,17 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			gl.disableVertexAttribArray(1);
 			gl.disable(gl.BLEND);
         }
-    };
-
-    var isWebGLSupported = function () {
-		
-        var canvas = document.createElement('canvas');
-		
-        var gl;
-        try {
-            gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-        } 
-		catch (e) {
-            return false;
-        }
-        if (!gl || !gl.getExtension('OES_texture_float') || !gl.getExtension('OES_texture_float_linear')) {
-            return false;
-        }
-        return true;
-    };
+    };    
 
     var requestAnimationFrame = window.requestAnimationFrame || 	
         window.webkitRequestAnimationFrame || 
         window.mozRequestAnimationFrame || window.msRequestAnimationFrame;    
-        
-    var SENSITIVITY = 1.0;    
 
+	// camera handling
     var NONE = 0,
-        ORBITING = 1;
-
+        ORBITING = 1,
+		MOUSE_SENSITIVITY = 1.0;	
+	
     var main = function () {
 		
         var simulatorCanvas = document.getElementById("simulator");
@@ -698,8 +442,8 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 
             if (mode === ORBITING) {
 				
-                camera.changeYaw((mouseX - lastMouseX) / width * SENSITIVITY);
-                camera.changePitch((mouseY - lastMouseY) / height * SENSITIVITY);
+                camera.changeYaw((mouseX - lastMouseX) / width * MOUSE_SENSITIVITY);
+                camera.changePitch((mouseY - lastMouseY) / height * MOUSE_SENSITIVITY);
                 lastMouseX = mouseX;
                 lastMouseY = mouseY;
             }
