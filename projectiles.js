@@ -9,7 +9,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 	GRAVITY = -9.80665,					// m/s²
 	BALL_MASS = 0.057,					// kg
 	BALL_RADIUS = 0.0335,				// 3.35cm
-	DRAG_COEFFICIENT = 0.55,			// Cd (https://www.researchgate.net/publication/313199404_The_drag_coefficient_of_tennis_balls)
+	DRAG_COEFFICIENT = 0.55,			// Cd 
 	AIR_DENSITY = 1.21,					// "ρ" kg/m^3
 	BALL_CROSSSECTION_AREA = 0.0034; 	// "A" ms²
 
@@ -58,16 +58,10 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			pathData = [],
 			pathBuffer = gl.createBuffer();
 
-		// TODO: need to make this an explicit upper limit (ridiculous amount atm!)
+		// TODO: need to make this an explicit, sane upper limit
         var pathBufferData = new Float32Array(100000000);
 		gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, pathBufferData, gl.DYNAMIC_DRAW);		
-		
-		this.getAirResistance = function (speed) {
-			
-			// Fd = 0.5CdρAv2				
-			return (0.5 * DRAG_COEFFICIENT * AIR_DENSITY * BALL_CROSSSECTION_AREA * (speed * speed));
-		};		
 		
 		this.getNetHeight = function (zOffs) {
 			
@@ -76,10 +70,41 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			// the net sags instead of is in a straight, taut line... but the straight line will do as a rough estimate for now
 			return 0.91 + (zOffs * tanTheta);
 		};
+		
+		this.getAirResistance = function (speed) {
+			
+			// Fd = 0.5CdρAv2				
+			return (0.5 * DRAG_COEFFICIENT * AIR_DENSITY * BALL_CROSSSECTION_AREA * (speed * speed));
+		};		
 				
 		var u_horiz = 0,
 			u_vert = 0,
 			ballPosition = { x: 0, y: 0, z: 0 };
+			
+		this.startBallPath = function() {
+			
+			ballPosition = { 
+				x: -11.88,
+				y: INITIAL_HEIGHT,
+				z: BASELINE_OFFSET
+			};
+			
+			var horizFactor = Math.cos((INITIAL_ANGLE * Math.PI) / 180.0);
+			var vertFactor = Math.sin((INITIAL_ANGLE * Math.PI) / 180.0);
+			u_horiz = horizFactor * INITIAL_SPEED;
+			u_vert = vertFactor * INITIAL_SPEED;
+			
+			var startSpeed = Math.sqrt((u_vert * u_vert) + (u_horiz * u_horiz));
+			
+			pathTime = 0;
+			plottingPath = true;
+			pathData = [];
+			
+			document.getElementById("landingDist").innerText = "";
+			document.getElementById("netClearance").innerText = "";			
+			document.getElementById("landingSpeed").innerText = "";
+		};
+			
 		this.updateBallPath = function (deltaTime) {			
 								
 			// do basic Euler stuff for now... time increment probably still a bit excessive, but whatever...
@@ -95,7 +120,6 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 				var vertAirResistance = this.getAirResistance(u_vert),
 					weight = GRAVITY * BALL_MASS;
 				var vertAcc = (vertAirResistance + weight) / BALL_MASS;
-				console.log(vertAcc.toString());
 
 				// Get distance travelled: s = ut + 1/2at^2
 				ballPosition.y += (u_vert * inc_t) + (0.5 * vertAcc * (inc_t * inc_t));
@@ -103,7 +127,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 				// Update vertical velocity: v = u + at
 				u_vert = u_vert + (GRAVITY * inc_t);
 							
-				// horizontal component (needs to be x/z if ball not travelling directly along the x axis)
+				// horizontal component
 				// --------------------
 				var airDec = -this.getAirResistance(u_horiz) / BALL_MASS;
 				// Get distance travelled: s = ut + 1/2at^2
@@ -165,61 +189,6 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			var pathDataArray = new Float32Array(pathData);
 			gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
 			gl.bufferSubData(gl.ARRAY_BUFFER, 0, pathDataArray);
-		};
-		
-		this.startBallPath = function() {
-			
-			ballPosition = { 
-				x: -11.88,
-				y: INITIAL_HEIGHT,
-				z: BASELINE_OFFSET
-			};
-			
-			var horizFactor = Math.cos((INITIAL_ANGLE * Math.PI) / 180.0);
-			var vertFactor = Math.sin((INITIAL_ANGLE * Math.PI) / 180.0);
-			u_horiz = horizFactor * INITIAL_SPEED;
-			u_vert = vertFactor * INITIAL_SPEED;
-			
-			var startSpeed = Math.sqrt((u_vert * u_vert) + (u_horiz * u_horiz));
-			
-			pathTime = 0;
-			plottingPath = true;
-			pathData = [];
-			
-			document.getElementById("landingDist").innerText = "";
-			document.getElementById("netClearance").innerText = "";			
-			document.getElementById("landingSpeed").innerText = "";
-		};
-		
-		this.onLaunchHeightChanged = function (launchHeight) {
-			
-			INITIAL_HEIGHT = Number(launchHeight);
-			this.startBallPath();
-		};
-		
-		this.onLaunchAngleChanged = function (launchAngleDeg) {
-			
-			INITIAL_ANGLE = Number(launchAngleDeg);
-			this.startBallPath();
-		};
-		
-		this.onLaunchSpeedChanged = function (launchSpeedMPH) {
-			
-			// convert to m/s for the calculations
-			INITIAL_SPEED = Number(launchSpeedMPH) / 2.23694;
-			this.startBallPath();
-		};
-		
-		this.onBaselineOffsetChanged = function (baselineOffset) {
-			
-			BASELINE_OFFSET = Number(baselineOffset);
-			this.startBallPath();
-		};
-			
-		this.onTargetOffsetChanged = function (targetOffset) {
-			
-			TARGET_OFFSET = Number(targetOffset);
-			this.startBallPath();
 		};
         
         this.render = function (deltaTime, projectionMatrix, viewMatrix, cameraPosition) {

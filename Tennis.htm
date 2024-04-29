@@ -4,14 +4,23 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<meta charset="utf-8">
 		<title>Tennis Serve Projectiles</title>
+		<link rel="icon" href="./BallSprite.png">
 	</head>
 
     <body onload="setupPage()">
-		<div style="width: 100%; overflow: hidden;">
-			<img src="BallSprite.png" id="ballImage" />
+		<div style="width: 100%; overflow: hidden;">						
+			<p>
+				<a href="https://twu.tennis-warehouse.com/learning_center/aerodynamics2.php" style="vertical-align: middle;">
+					https://twu.tennis-warehouse.com/learning_center/aerodynamics2.php
+				</a>
+			</p>
+			<p>
+				<a href="https://www.researchgate.net/publication/313199404_The_drag_coefficient_of_tennis_balls" style="vertical-align: middle;">
+					https://www.researchgate.net/publication/313199404_The_drag_coefficient_of_tennis_balls
+				</a>
+			</p>
 			<form id="parameters">
 				<div style="width: 400px; float: left;">
-					<p>Gravity: -9.80665m/s²</p>			
 					<p>
 						Launch height:
 						<input id="launchHeight" type="number" min="0" max="4.0" value="2.718" step="0.001" style="vertical-align: middle;" onchange="onLaunchHeightChanged(this.value);"/>
@@ -20,29 +29,49 @@
 					</p>
 					<p>
 						Launch angle:
-						<input id="launchAngle" type="number" min="-30" max="30.0" value="-4.8" step="0.1" style="vertical-align: middle;" onchange="window.simulator.onLaunchAngleChanged(this.value);"/>
+						<input id="launchAngle" type="number" min="-30" max="30.0" value="-4.8" step="0.1" style="vertical-align: middle;" onchange="onLaunchAngleChanged(this.value);"/>
 						(deg)
 					</p>
 					<p>
 						Launch speed:
-						<input id="launchSpeed" type="number" min="50" max="163.0" value="120.0" step="0.5" style="vertical-align: middle;" onchange="window.simulator.onLaunchSpeedChanged(this.value);"/>
+						<input id="launchSpeed" type="number" min="50" max="163.0" value="120.0" step="0.5" style="vertical-align: middle;" onchange="onLaunchSpeedChanged(this.value);"/>
 						(mph)
 					</p>
 					<p>
 						Serve offset:
-						<input id="baselineOffset" type="number" min="0" max="4.11" value="1.0" step="0.1" style="vertical-align: middle;" onchange="window.simulator.onBaselineOffsetChanged(this.value);"/>
+						<input id="baselineOffset" type="number" min="0" max="4.11" value="1.0" step="0.1" style="vertical-align: middle;" onchange="onBaselineOffsetChanged(this.value);"/>
 						(m)
 					</p>
 					<p>
 						Target offset:
-						<input id="targetOffset" type="number" min="0" max="4.11" value="0.2" step="0.1" style="vertical-align: middle;" onchange="window.simulator.onTargetOffsetChanged(this.value);"/>
+						<input id="targetOffset" type="number" min="0" max="4.11" value="0.2" step="0.1" style="vertical-align: middle;" onchange="onTargetOffsetChanged(this.value);"/>
 						(m)
 					</p>
-					<p>Ball mass: 0.057(kg)</p>			
-					<p>Ball radius: 0.0335(m)</p>			
-					<p>Drag coefficient: 0.55</p> <!-- https://www.researchgate.net/publication/313199404_The_drag_coefficient_of_tennis_balls -->			
-					<p>Air density "ρ": 1.21(kg/m³)</p>			
-					<p>Ball cross section area: 0.0034(m²)</p>
+					<p>
+						Ball mass:
+						<input id="ballMass" type="number" min="0.01" max="0.07" value="0.057" step="0.001" style="vertical-align: middle;" onchange="onBallMassChanged(this.value);"/>
+						(kg)
+					</p>
+					<p>
+						Ball radius:
+						<input id="ballRadius" type="number" min="0.02" max="0.05" value="0.0335" step="0.0001" style="vertical-align: middle;" onchange="onBallRadiusChanged(this.value);"/>
+						(kg)
+					</p>
+					<p>
+						Ball cross section area: 
+						<span id="ballCrossSectionArea">0.00353</span>
+						(m²)
+					</p>
+					<p>						
+						Drag coefficient: 
+						<input id="dragCoefficient" type="number" min="0.5" max="0.7" value="0.55" step="0.01" style="vertical-align: middle;" onchange="onDragCoefficientChanged(this.value);"/>
+					</p>
+					<p>						
+						Air density "ρ": 
+						<input id="airDensity" type="number" min="0.0" max="3.0" value="1.21" step="0.01" style="vertical-align: middle;" onchange="onAirDensityChanged(this.value);"/>
+						(kg/m³)
+					</p>
+					<p>Gravity: -9.80665m/s²</p>
 				</div>
 			</form>
 			<div style="margin-left: 420px;">
@@ -72,7 +101,68 @@
 				var feetAndInches = document.getElementById("feetAndInches");			
 				feetAndInches.innerText = "(" + feet.toString() + "'" + inches + '"' + ")";
 				
-				window.simulator.onLaunchHeightChanged(launchHeight);
+				INITIAL_HEIGHT = Number(launchHeight);
+				window.simulator.startBallPath();
+			};
+			
+			function onLaunchAngleChanged (launchAngleDeg) {
+				
+				INITIAL_ANGLE = Number(launchAngleDeg);
+				window.simulator.startBallPath();
+			};
+			
+			function onLaunchSpeedChanged (launchSpeedMPH) {
+				
+				// convert to m/s for the calculations
+				INITIAL_SPEED = Number(launchSpeedMPH) / 2.23694;
+				window.simulator.startBallPath();
+			};
+			
+			function onBaselineOffsetChanged (baselineOffset) {
+				
+				BASELINE_OFFSET = Number(baselineOffset);
+				window.simulator.startBallPath();
+			};
+				
+			function onTargetOffsetChanged (targetOffset) {
+				
+				TARGET_OFFSET = Number(targetOffset);
+				window.simulator.startBallPath();
+			};
+			
+			function onBallMassChanged (ballMass) {
+			
+				BALL_MASS = Number(ballMass);
+				window.simulator.startBallPath();
+			};
+			
+			function updateBallCrossSectionArea() {
+			
+				BALL_CROSSSECTION_AREA = Math.PI * (BALL_RADIUS * BALL_RADIUS);
+				
+				var decPlacesDisplay = 5;
+				var rounded = Math.round(BALL_CROSSSECTION_AREA * Math.pow(10, decPlacesDisplay));
+				document.getElementById("ballCrossSectionArea").innerText = (rounded / Math.pow(10, decPlacesDisplay)).toString();
+			};
+			
+			function onBallRadiusChanged (ballRadius) {
+			
+				BALL_RADIUS = Number(ballRadius);												
+				updateBallCrossSectionArea();
+				
+				window.simulator.startBallPath();
+			};
+			
+			function onDragCoefficientChanged (dragCoefficient) {
+			
+				DRAG_COEFFICIENT = Number(dragCoefficient);
+				window.simulator.startBallPath();
+			};
+			
+			function onAirDensityChanged (airDensity) {
+			
+				AIR_DENSITY = Number(airDensity);
+				window.simulator.startBallPath();
 			};
 		
 			function setupPage() {
@@ -83,10 +173,17 @@
 				INITIAL_ANGLE = Number(document.getElementById("launchAngle").value);
 				INITIAL_SPEED = Number(document.getElementById("launchSpeed").value) / 2.23694;
 				BASELINE_OFFSET = Number(document.getElementById("baselineOffset").value);
+				TARGET_OFFSET = Number(document.getElementById("targetOffset").value);
+				BALL_MASS = Number(document.getElementById("ballMass").value);				
+				BALL_RADIUS = Number(document.getElementById("ballRadius").value);				
+				updateBallCrossSectionArea();
+				DRAG_COEFFICIENT = Number(document.getElementById("dragCoefficient").value);
+				AIR_DENSITY = Number(document.getElementById("airDensity").value);
 				
 				// kick off an initial path computation
-				onLaunchHeightChanged(INITIAL_HEIGHT);
+				simulator.startBallPath();
 			};
+						
 		</script>
 		<script src="./ballsprite.js"></script>
 		<script src="./matrices.js"></script>
