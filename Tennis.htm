@@ -21,7 +21,7 @@
  
         #rightbox {
             float: left;
-            width: 400px;
+            width: 130px;
             height: 100%;
         }
 		</style>
@@ -111,12 +111,12 @@
 		</div>
 		<div id="rightbox">
 			<form id="cameraSettings">
-				<input type="checkbox" id="ballCameraSelect" name="ballCam" onchange="setUseBallCamera(this.checked);" />
+				<input type="checkbox" id="ballCameraSelect" name="ballCam" />
 				<label for="ballCam">Use ball camera</label>
 			</form>
 		</div>
 		
-		<script>
+		<script>			
 			function updateImperialHeight() {
 			
 				var launchHeight = INITIAL_HEIGHT;
@@ -197,7 +197,7 @@
 				window.simulator.startBallPath();
 			};
 		
-			function setupPage() {
+			function setupPage() {				
 			
 				parameters.reset();
 				cameraSettings.reset();

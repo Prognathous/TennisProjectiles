@@ -12,12 +12,6 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 	DRAG_COEFFICIENT = 0.55,			// Cd 
 	AIR_DENSITY = 1.21,					// "ρ" kg/m^3
 	BALL_CROSSSECTION_AREA = 0.0034; 	// "A" ms²
-	
-var useBallCamera = false;
-function setUseBallCamera (selected) {
-			
-	useBallCamera = selected;
-};
 
 (function () {
 	
@@ -117,6 +111,10 @@ function setUseBallCamera (selected) {
 		};
 			
 		this.updateBallPath = function (deltaTime) {			
+		
+			if (!plottingPath) {				
+				return;
+			}
 								
 			// do basic Euler stuff for now... time increment probably still a bit excessive, but whatever...
 			var inc_t = 0.0001;
@@ -224,9 +222,6 @@ function setUseBallCamera (selected) {
 
 			// draw ball path
 			// --------------
-			if (plottingPath) {
-				this.updateBallPath(deltaTime / 2);
-			}
 			gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
 			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
 			gl.drawArrays(gl.LINES, 0, pathData.length / 3);
@@ -458,15 +453,28 @@ function setUseBallCamera (selected) {
 				break;
 			}
 		});
+		
+		var ballCameraSelectEl = document.getElementById('ballCameraSelect');
+		ballCameraSelectEl.addEventListener('change', function () {
+			
+			if (ballCameraSelectEl.checked) {
+				camera.setBallCamera(simulator.getBallPosition());
+			}
+			else {
+				camera.setCourtCamera();
+			}
+		});
 
         var previousTime = (new Date()).getTime();
         var render = function render (currentTime) {
 			
             var deltaTime = (currentTime - previousTime) / 1000.0 || 0.0;
             previousTime = currentTime;
+						
+			simulator.updateBallPath(deltaTime / 2);
 		
-			var cameraTarget = useBallCamera ? simulator.getBallPosition() : [ 0, 0, 0 ];
-			camera.setCameraTarget(cameraTarget);
+			var cameraTarget = ballCameraSelectEl.checked ? simulator.getBallPosition() : [ 0, 0, 0 ];
+			camera.updateTarget(cameraTarget);
 			
             simulator.render(deltaTime, projectionMatrix, camera.getViewMatrix());
 
