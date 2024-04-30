@@ -1,3 +1,11 @@
+function getNetHeight (zOffs) {
+			
+	// 0.91 = net height in the centre, 1.07 = net height at post, 5.02
+	var tanTheta = (1.07 - 0.91) / 5.02;
+	// the net sags instead of is in a straight, taut line... but the straight line will do as a rough estimate for now
+	return 0.91 + (zOffs * tanTheta);
+};
+
 function isWebGLSupported () {
 		
     var canvas = document.createElement('canvas');
@@ -134,46 +142,96 @@ function getNetPostGeometry() {
 	return triData;
 };
 
-function getNetHeight (zOffs) {
-			
-	// 0.91 = net height in the centre, 1.07 = net height at post, 5.02
-	var tanTheta = (1.07 - 0.91) / 5.02;
-	// the net sags instead of is in a straight, taut line... but the straight line will do as a rough estimate for now
-	return 0.91 + (zOffs * tanTheta);
+var netCordWidth = 0.0254;
+function getNetCordGeometry() {	
+		
+	var netCordData = [];
+	
+	// left side
+	netCordData.push(0);
+	netCordData.push(1.07);
+	netCordData.push(-(5.02 - netPostRadius));
+	
+	netCordData.push(0);
+	netCordData.push(0.91);
+	netCordData.push(0);
+	
+	netCordData.push(0);
+	netCordData.push(1.07 - netCordWidth);
+	netCordData.push(-(5.02 - netPostRadius));	
+	
+	netCordData.push(0);
+	netCordData.push(0.91);
+	netCordData.push(0);
+	
+	netCordData.push(0);
+	netCordData.push(1.07 - netCordWidth);
+	netCordData.push(-(5.02 - netPostRadius));	
+	
+	netCordData.push(0);
+	netCordData.push(0.91 - netCordWidth);
+	netCordData.push(0);
+	
+	// right side
+	netCordData.push(0);
+	netCordData.push(1.07);
+	netCordData.push(5.02 - netPostRadius);
+	
+	netCordData.push(0);
+	netCordData.push(0.91);
+	netCordData.push(0);
+	
+	netCordData.push(0);
+	netCordData.push(1.07 - netCordWidth);
+	netCordData.push(5.02 - netPostRadius);
+	
+	netCordData.push(0);
+	netCordData.push(0.91);
+	netCordData.push(0);
+	
+	netCordData.push(0);
+	netCordData.push(1.07 - netCordWidth);
+	netCordData.push(5.02 - netPostRadius);
+	
+	netCordData.push(0);
+	netCordData.push(0.91 - netCordWidth);
+	netCordData.push(0);
+	
+	// centre line drop
+	netCordData.push(0.0);
+	netCordData.push(0.91 - netCordWidth);
+	netCordData.push(-netCordWidth);
+	
+	netCordData.push(0.0);
+	netCordData.push(0.0);
+	netCordData.push(-netCordWidth);
+	
+	netCordData.push(0.0);
+	netCordData.push(0.91 - netCordWidth);
+	netCordData.push(netCordWidth);
+	
+	
+	netCordData.push(0.0);
+	netCordData.push(0.0);
+	netCordData.push(-netCordWidth);
+	
+	netCordData.push(0.0);
+	netCordData.push(0.91 - netCordWidth);
+	netCordData.push(netCordWidth);
+	
+	netCordData.push(0.0);
+	netCordData.push(0.0);
+	netCordData.push(netCordWidth);
+	
+	return netCordData;
 };
 
 function getNetGeometry() {
 	
 	var netData = [];	
 	
-	// net cord top half
-	netData.push(0.0);
-	netData.push(0.91); // net height in the centre		
-	netData.push(0.0)
-	// p1
-	netData.push(0.0);
-	netData.push(1.07);
-	netData.push(5.02);	// net height in the centre
-	
-	// net cord bottom half
-	netData.push(0.0);
-	netData.push(0.91); // net height in the centre		
-	netData.push(0.0)
-	// p1
-	netData.push(0.0);
-	netData.push(1.07);	// net height at the post
-	netData.push(-5.02);
-	
-	// centre line drop
-	netData.push(0.0);
-	netData.push(0.91); // net height in the centre		
-	netData.push(0.0)
-	// p1
-	netData.push(0.0);
-	netData.push(0.1);
-	netData.push(0.0);
-	
 	var netRows = 10;	
+	// NB: don't go all the way to the top as the net cord geometry covers it
 	for (var y = 0; y < netRows; y++) {
 		
 		netData.push(0);
@@ -191,16 +249,17 @@ function getNetGeometry() {
 		
 		netData.push(0);
 		netData.push(y * (0.91 / netRows))
-		netData.push(0);		
+		netData.push(0);
 	}
 	
 	var netColumns = 24;
-	for (var z = 0; z < netColumns; z++) {
+	// NB: don't go all the way to the middle as the net cord geometry covers it
+	for (var z = 1; z < netColumns; z++) {
 	
 		var netHeight = getNetHeight(z * (5.02 / netColumns));
 		
 		netData.push(0);
-		netData.push(netHeight);		
+		netData.push(netHeight - netCordWidth);		
 		netData.push(z * (5.02 / netColumns));
 		
 		netData.push(0);
@@ -209,7 +268,7 @@ function getNetGeometry() {
 		
 		
 		netData.push(0);
-		netData.push(netHeight);		
+		netData.push(netHeight - netCordWidth);		
 		netData.push(-z * (5.02 / netColumns));
 		
 		netData.push(0);
@@ -252,8 +311,6 @@ function getLinesGeometry() {
 	lineData.push(-11.88);
 	lineData.push(0);
 	lineData.push(-4.11);
-	
-	// base line left, centre notch (TODO)
 	
 	// base line, right
 	lineData.push(11.88);

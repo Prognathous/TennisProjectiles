@@ -18,7 +18,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
     'use strict';
 	
 	var SIZE_OF_FLOAT = 4;
-	var CLEAR_COLOR = [0.9, 0.9, 0.9, 1.0];    
+	var CLEAR_COLOR = [0.0, 0.0, 0.2, 1.0];
 
     var Simulator = function (canvas, width, height) {
 		
@@ -63,6 +63,11 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			netPostBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, netPostBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(netPostData), gl.STATIC_DRAW);
+		
+		var netCordData = getNetCordGeometry(),
+			netCordBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, netCordBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(netCordData), gl.STATIC_DRAW);
 		
 		var netData = getNetGeometry(),
 			netBuffer = gl.createBuffer();
@@ -236,13 +241,20 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 
 			// draw court lines
 			// ----------------
-			gl.uniform4f(simpleProgram.getUniformLocation('u_colour'), 0.9, 0.9, 0.9, 0.4);
+			gl.uniform4f(simpleProgram.getUniformLocation('u_colour'), 0.9, 0.9, 0.9, 1.0);
 			gl.bindBuffer(gl.ARRAY_BUFFER, linesBuffer);            
 			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
             gl.drawArrays(gl.TRIANGLES, 0, linesData.length / 3);
 			
 			
 			gl.enable(gl.DEPTH_TEST);
+			
+			// draw net cord
+			// -------------
+			gl.uniform4f(simpleProgram.getUniformLocation('u_colour'), 0.9, 0.9, 0.9, 1.0);
+			gl.bindBuffer(gl.ARRAY_BUFFER, netCordBuffer);            
+			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
+            gl.drawArrays(gl.TRIANGLES, 0, netCordData.length / 3);
 			
 			// draw net posts
 			// --------------
@@ -255,7 +267,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			
 			modelMatrix[14] = 5.02;
 			gl.uniformMatrix4fv(simpleProgram.getUniformLocation('u_modelMatrix'), false, modelMatrix);
-			gl.drawArrays(gl.TRIANGLES, 0, netPostData.length / 3);
+			gl.drawArrays(gl.TRIANGLES, 0, netPostData.length / 3);			
 						
 			
 			// draw lines
@@ -273,7 +285,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 
 			// draw ball path
 			// --------------
-			gl.uniform4f(simpleProgram.getUniformLocation('u_colour'), 0.1, 0.1, 0.1, 1.0);
+			gl.uniform4f(simpleProgram.getUniformLocation('u_colour'), 0.75, 0.75, 0.1, 1.0);
 			gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
 			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
 			gl.drawArrays(gl.LINES, 0, pathData.length / 3);
