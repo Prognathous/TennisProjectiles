@@ -35,24 +35,15 @@ var SIMPLE_VERTEX_SOURCE = [
 
     'uniform mat4 u_projectionMatrix;',
     'uniform mat4 u_viewMatrix;',
+	'uniform mat4 u_modelMatrix;',
 
     'void main (void) {',
 
-        'gl_Position = u_projectionMatrix * u_viewMatrix * vec4(a_position, 1.0);',
+        'gl_Position = u_projectionMatrix * u_viewMatrix * u_modelMatrix * vec4(a_position, 1.0);',
     '}'
 ].join('\n');
 
-var LINES_FRAGMENT_SOURCE = [
-    'precision highp float;',        
-	
-    'void main (void) {',            
-
-        'gl_FragColor = vec4(0.2, 0.2, 0.2, 1.0);',
-    '}'
-].join('\n');
-
-// use with the lines vertex shader
-var TRIS_FRAGMENT_SOURCE = [
+var SIMPLE_FRAGMENT_SOURCE = [
 	'precision highp float;',
 	
 	'uniform vec4 u_colour;',

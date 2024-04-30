@@ -82,27 +82,69 @@ function buildTexture (gl, url, internalFormat, wrapS, wrapT, minFilter, magFilt
     return texture;
 };    	
 
+var netPostRadius = 0.1;
+function getNetPostGeometry() {
+	
+	var height = 1.07,
+		netPostRadius = 0.1,
+		sections = 20,
+		subdivisions = 100,
+		deltax = (Math.PI * 2) / subdivisions,
+		deltay = height / sections;
+		
+	var triData = [];
+		
+	// plot main cylinder
+	for (var y = 0; y < sections; y++) {
+		
+		for (var x = 0; x < subdivisions; x++) {
+		
+			var px0 = netPostRadius * Math.cos(x * deltax),
+				pz0 = netPostRadius * Math.sin(x * deltax),
+				px1 = netPostRadius * Math.cos((x + 1) * deltax),
+				pz1 = netPostRadius * Math.sin((x + 1) * deltax);
+				
+			triData.push(px0);
+			triData.push(y * deltay);
+			triData.push(pz0);
+			
+			triData.push(px0);
+			triData.push((y + 1) * deltay);
+			triData.push(pz0);
+			
+			triData.push(px1);
+			triData.push(y * deltay);
+			triData.push(pz1);
+			
+			
+			triData.push(px0);
+			triData.push((y + 1) * deltay);
+			triData.push(pz0);
+			
+			triData.push(px1);
+			triData.push(y * deltay);
+			triData.push(pz1);
+			
+			triData.push(px1);
+			triData.push((y + 1) * deltay);
+			triData.push(pz1);
+		}
+	}
+	
+	return triData;
+};
+
+function getNetHeight (zOffs) {
+			
+	// 0.91 = net height in the centre, 1.07 = net height at post, 5.02
+	var tanTheta = (1.07 - 0.91) / 5.02;
+	// the net sags instead of is in a straight, taut line... but the straight line will do as a rough estimate for now
+	return 0.91 + (zOffs * tanTheta);
+};
+
 function getNetGeometry() {
 	
-	var netData = [];
-	
-	// top net post
-	netData.push(0.0);
-	netData.push(0.0);
-	netData.push(5.02);
-	// p1
-	netData.push(0.0);
-	netData.push(1.07);	// net height at the post
-	netData.push(5.02);
-	
-	// bottom net post
-	netData.push(0.0);
-	netData.push(0.0);
-	netData.push(-5.02);
-	// p1
-	netData.push(0.0);
-	netData.push(1.07);	// net height at the post
-	netData.push(-5.02);
+	var netData = [];	
 	
 	// net cord top half
 	netData.push(0.0);
@@ -129,7 +171,51 @@ function getNetGeometry() {
 	// p1
 	netData.push(0.0);
 	netData.push(0.1);
-	netData.push(0.0);		
+	netData.push(0.0);
+	
+	var netRows = 10;	
+	for (var y = 0; y < netRows; y++) {
+		
+		netData.push(0);
+		netData.push(y * (1.07 / netRows))
+		netData.push(-(5.02 - netPostRadius));
+		
+		netData.push(0);
+		netData.push(y * (0.91 / netRows))
+		netData.push(0);
+		
+		
+		netData.push(0);
+		netData.push(y * (1.07 / netRows))
+		netData.push(5.02 - netPostRadius);
+		
+		netData.push(0);
+		netData.push(y * (0.91 / netRows))
+		netData.push(0);		
+	}
+	
+	var netColumns = 24;
+	for (var z = 0; z < netColumns; z++) {
+	
+		var netHeight = getNetHeight(z * (5.02 / netColumns));
+		
+		netData.push(0);
+		netData.push(netHeight);		
+		netData.push(z * (5.02 / netColumns));
+		
+		netData.push(0);
+		netData.push(0);
+		netData.push(z * (5.02 / netColumns));
+		
+		
+		netData.push(0);
+		netData.push(netHeight);		
+		netData.push(-z * (5.02 / netColumns));
+		
+		netData.push(0);
+		netData.push(0);
+		netData.push(-z * (5.02 / netColumns));
+	}
 	
 	return netData;
 };

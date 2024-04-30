@@ -28,16 +28,9 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 
         var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 
-        var linesProgram = new programWrapper(gl,
+        var simpleProgram = new programWrapper(gl,
             buildShader(gl, gl.VERTEX_SHADER, SIMPLE_VERTEX_SOURCE),
-            buildShader(gl, gl.FRAGMENT_SHADER, LINES_FRAGMENT_SOURCE), {
-                'a_position': 0                
-			}
-		);
-		
-		var trisProgram = new programWrapper(gl,
-            buildShader(gl, gl.VERTEX_SHADER, SIMPLE_VERTEX_SOURCE),
-            buildShader(gl, gl.FRAGMENT_SHADER, TRIS_FRAGMENT_SOURCE), {
+            buildShader(gl, gl.FRAGMENT_SHADER, SIMPLE_FRAGMENT_SOURCE), {
                 'a_position': 0                
 			}
 		);
@@ -66,6 +59,11 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 		gl.bindBuffer(gl.ARRAY_BUFFER, linesBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(linesData), gl.STATIC_DRAW);
 		
+		var netPostData = getNetPostGeometry(),
+			netPostBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, netPostBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(netPostData), gl.STATIC_DRAW);
+		
 		var netData = getNetGeometry(),
 			netBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, netBuffer);
@@ -79,15 +77,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 		// TODO: need to make this an explicit, sane upper limit
         var pathBufferData = new Float32Array(100000000);
 		gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, pathBufferData, gl.DYNAMIC_DRAW);		
-		
-		this.getNetHeight = function (zOffs) {
-			
-			// 0.91 = net height in the centre, 1.07 = net height at post, 5.02
-			var tanTheta = (1.07 - 0.91) / 5.02;
-			// the net sags instead of is in a straight, taut line... but the straight line will do as a rough estimate for now
-			return 0.91 + (zOffs * tanTheta);
-		};
+		gl.bufferData(gl.ARRAY_BUFFER, pathBufferData, gl.DYNAMIC_DRAW);
 		
 		this.getAirResistance = function (speed) {
 			
@@ -176,8 +166,8 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 				// check if the ball has hit the net...
 				if ((ballPosition.x >= 0) && (ballPosition.x <= BALL_RADIUS)) {
 					
-					var netHeight = this.getNetHeight(ballPosition.z);
-					if (ballPosition.y <= (this.getNetHeight(ballPosition.z) + BALL_RADIUS)) {
+					var netHeight = getNetHeight(ballPosition.z);
+					if (ballPosition.y <= (netHeight + BALL_RADIUS)) {
 						
 						plottingPath = false;
 						break;
@@ -226,44 +216,64 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
             gl.viewport(0, 0, canvas.width, canvas.height);
 			gl.disable(gl.DEPTH_TEST); // lines very much overlay the court
 			gl.disable(gl.CULL_FACE);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);            
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+			
+			var modelMatrix = makeIdentityMatrix(new Float32Array(16))
+			makeIdentityMatrix(modelMatrix);
 			
 			// draw triangles
-			gl.useProgram(trisProgram.getProgram());			
-			gl.uniformMatrix4fv(trisProgram.getUniformLocation('u_projectionMatrix'), false, projectionMatrix);
-            gl.uniformMatrix4fv(trisProgram.getUniformLocation('u_viewMatrix'), false, viewMatrix);
+			gl.useProgram(simpleProgram.getProgram());			
+			gl.uniformMatrix4fv(simpleProgram.getUniformLocation('u_projectionMatrix'), false, projectionMatrix);
+            gl.uniformMatrix4fv(simpleProgram.getUniformLocation('u_viewMatrix'), false, viewMatrix);
+			gl.uniformMatrix4fv(simpleProgram.getUniformLocation('u_modelMatrix'), false, modelMatrix);
 			
 			// draw court background
 			// ---------------------
-			gl.uniform4f(trisProgram.getUniformLocation('u_colour'), 0.2, 0.8, 0.2, 1.0);
+			gl.uniform4f(simpleProgram.getUniformLocation('u_colour'), 0.2, 0.8, 0.2, 1.0);
 			gl.bindBuffer(gl.ARRAY_BUFFER, courtBuffer);            
 			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
             gl.drawArrays(gl.TRIANGLES, 0, courtData.length / 3);
 
 			// draw court lines
 			// ----------------
-			gl.uniform4f(trisProgram.getUniformLocation('u_colour'), 0.9, 0.9, 0.9, 1.0);
+			gl.uniform4f(simpleProgram.getUniformLocation('u_colour'), 0.9, 0.9, 0.9, 0.4);
 			gl.bindBuffer(gl.ARRAY_BUFFER, linesBuffer);            
 			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
             gl.drawArrays(gl.TRIANGLES, 0, linesData.length / 3);
 			
 			
-			// sort the lines against the court...
 			gl.enable(gl.DEPTH_TEST);
 			
+			// draw net posts
+			// --------------
+			gl.uniform4f(simpleProgram.getUniformLocation('u_colour'), 0.7, 0.3, 0.3, 1.0);
+			modelMatrix[14] = -5.02;
+			gl.uniformMatrix4fv(simpleProgram.getUniformLocation('u_modelMatrix'), false, modelMatrix);
+			gl.bindBuffer(gl.ARRAY_BUFFER, netPostBuffer);            
+			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
+            gl.drawArrays(gl.TRIANGLES, 0, netPostData.length / 3);
+			
+			modelMatrix[14] = 5.02;
+			gl.uniformMatrix4fv(simpleProgram.getUniformLocation('u_modelMatrix'), false, modelMatrix);
+			gl.drawArrays(gl.TRIANGLES, 0, netPostData.length / 3);
+						
+			
 			// draw lines
-            gl.useProgram(linesProgram.getProgram());
-            gl.uniformMatrix4fv(linesProgram.getUniformLocation('u_projectionMatrix'), false, projectionMatrix);
-            gl.uniformMatrix4fv(linesProgram.getUniformLocation('u_viewMatrix'), false, viewMatrix);			
+			modelMatrix[14] = 0;
+			// sort the lines against the court...			
+            gl.useProgram(simpleProgram.getProgram());
+			gl.uniformMatrix4fv(simpleProgram.getUniformLocation('u_modelMatrix'), false, modelMatrix);
 			
 			// draw court net
-			// --------------			
+			// --------------
+			gl.uniform4f(simpleProgram.getUniformLocation('u_colour'), 0.0, 0.0, 0.0, 0.6);
 			gl.bindBuffer(gl.ARRAY_BUFFER, netBuffer);            
 			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
             gl.drawArrays(gl.LINES, 0, netData.length / 3);
 
 			// draw ball path
 			// --------------
+			gl.uniform4f(simpleProgram.getUniformLocation('u_colour'), 0.1, 0.1, 0.1, 1.0);
 			gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
 			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
 			gl.drawArrays(gl.LINES, 0, pathData.length / 3);
