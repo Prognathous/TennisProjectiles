@@ -235,7 +235,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			
 			// draw court background
 			// ---------------------
-			gl.uniform4f(trisProgram.getUniformLocation('u_colour'), 0.2, 0.9, 0.2, 1.0);
+			gl.uniform4f(trisProgram.getUniformLocation('u_colour'), 0.2, 0.8, 0.2, 1.0);
 			gl.bindBuffer(gl.ARRAY_BUFFER, courtBuffer);            
 			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
             gl.drawArrays(gl.TRIANGLES, 0, courtData.length / 3);

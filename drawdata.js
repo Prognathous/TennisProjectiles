@@ -303,7 +303,16 @@ function getLinesGeometry() {
 	// service line, centre
 	lineData.push(-(6.4 - halfLineWidth));
 	lineData.push(0);
-	lineData.push(-lineWidth);
+	lineData.push(-halfLineWidth);
+	
+	lineData.push(6.4 - halfLineWidth);
+	lineData.push(0);
+	lineData.push(-halfLineWidth);
+	
+	lineData.push(-(6.4 - halfLineWidth));
+	lineData.push(0);
+	lineData.push(halfLineWidth);
+	
 	
 	lineData.push(6.4 - halfLineWidth);
 	lineData.push(0);
@@ -315,13 +324,59 @@ function getLinesGeometry() {
 	
 	lineData.push(6.4 - halfLineWidth);
 	lineData.push(0);
+	lineData.push(halfLineWidth);
+	
+	
+	// baseline notch, left
+	lineData.push(-(11.88 - lineWidth));
+	lineData.push(0);
 	lineData.push(-halfLineWidth);
 	
-	lineData.push(-(6.4 - halfLineWidth));
+	lineData.push(-(11.88 - (lineWidth * 2)));
+	lineData.push(0);
+	lineData.push(-halfLineWidth);
+	
+	lineData.push(-(11.88 - lineWidth));
 	lineData.push(0);
 	lineData.push(halfLineWidth);
 	
-	lineData.push(6.4 - halfLineWidth);
+	
+	lineData.push(-(11.88 - (lineWidth * 2)));
+	lineData.push(0);
+	lineData.push(-halfLineWidth);
+	
+	lineData.push(-(11.88 - lineWidth));
+	lineData.push(0);
+	lineData.push(halfLineWidth);
+	
+	lineData.push(-(11.88 - (lineWidth * 2)));
+	lineData.push(0);
+	lineData.push(halfLineWidth);
+	
+	
+	// baseline notch, right
+	lineData.push(11.88 - lineWidth);
+	lineData.push(0);
+	lineData.push(-halfLineWidth);
+	
+	lineData.push(11.88 - (lineWidth * 2));
+	lineData.push(0);
+	lineData.push(-halfLineWidth);
+	
+	lineData.push(11.88 - lineWidth);
+	lineData.push(0);
+	lineData.push(halfLineWidth);
+	
+	
+	lineData.push(11.88 - (lineWidth * 2));
+	lineData.push(0);
+	lineData.push(-halfLineWidth);
+	
+	lineData.push(11.88 - lineWidth);
+	lineData.push(0);
+	lineData.push(halfLineWidth);
+	
+	lineData.push(11.88 - (lineWidth * 2));
 	lineData.push(0);
 	lineData.push(halfLineWidth);
 	
