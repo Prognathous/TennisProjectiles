@@ -29,8 +29,15 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
         var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 
         var linesProgram = new programWrapper(gl,
-            buildShader(gl, gl.VERTEX_SHADER, LINES_VERTEX_SOURCE),
+            buildShader(gl, gl.VERTEX_SHADER, SIMPLE_VERTEX_SOURCE),
             buildShader(gl, gl.FRAGMENT_SHADER, LINES_FRAGMENT_SOURCE), {
+                'a_position': 0                
+			}
+		);
+		
+		var trisProgram = new programWrapper(gl,
+            buildShader(gl, gl.VERTEX_SHADER, SIMPLE_VERTEX_SOURCE),
+            buildShader(gl, gl.FRAGMENT_SHADER, TRIS_FRAGMENT_SOURCE), {
                 'a_position': 0                
 			}
 		);
@@ -47,12 +54,23 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			ballDataArray = new Float32Array(5 * 6);
 		gl.bindBuffer(gl.ARRAY_BUFFER, ballDataBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, ballDataArray, gl.DYNAMIC_DRAW);
-
+		
+		// court drawing is split into three parts: court background, lines and the net
 		var courtData = getCourtGeometry(),
 			courtBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, courtBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(courtData), gl.STATIC_DRAW);
-			
+		
+		var linesData = getLinesGeometry(),
+			linesBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, linesBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(linesData), gl.STATIC_DRAW);
+		
+		var netData = getNetGeometry(),
+			netBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, netBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(netData), gl.STATIC_DRAW);
+
 		var pathTime = 0,
 			plottingPath = false,
 			pathData = [],
@@ -206,26 +224,49 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			gl.enableVertexAttribArray(0);			
 
             gl.viewport(0, 0, canvas.width, canvas.height);
-            gl.enable(gl.DEPTH_TEST);
+			gl.disable(gl.DEPTH_TEST); // lines very much overlay the court
 			gl.disable(gl.CULL_FACE);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);            
+			
+			// draw triangles
+			gl.useProgram(trisProgram.getProgram());			
+			gl.uniformMatrix4fv(trisProgram.getUniformLocation('u_projectionMatrix'), false, projectionMatrix);
+            gl.uniformMatrix4fv(trisProgram.getUniformLocation('u_viewMatrix'), false, viewMatrix);
+			
+			// draw court background
+			// ---------------------
+			gl.uniform4f(trisProgram.getUniformLocation('u_colour'), 0.2, 0.9, 0.2, 1.0);
+			gl.bindBuffer(gl.ARRAY_BUFFER, courtBuffer);            
+			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
+            gl.drawArrays(gl.TRIANGLES, 0, courtData.length / 3);
 
-			// draw court lines            			
+			// draw court lines
 			// ----------------
+			gl.uniform4f(trisProgram.getUniformLocation('u_colour'), 0.9, 0.9, 0.9, 1.0);
+			gl.bindBuffer(gl.ARRAY_BUFFER, linesBuffer);            
+			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
+            gl.drawArrays(gl.TRIANGLES, 0, linesData.length / 3);
+			
+			
+			// sort the lines against the court...
+			gl.enable(gl.DEPTH_TEST);
+			
+			// draw lines
             gl.useProgram(linesProgram.getProgram());
             gl.uniformMatrix4fv(linesProgram.getUniformLocation('u_projectionMatrix'), false, projectionMatrix);
             gl.uniformMatrix4fv(linesProgram.getUniformLocation('u_viewMatrix'), false, viewMatrix);			
-
-			gl.bindBuffer(gl.ARRAY_BUFFER, courtBuffer);            
+			
+			// draw court net
+			// --------------			
+			gl.bindBuffer(gl.ARRAY_BUFFER, netBuffer);            
 			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
-            gl.drawArrays(gl.LINES, 0, courtData.length / 3);
+            gl.drawArrays(gl.LINES, 0, netData.length / 3);
 
 			// draw ball path
 			// --------------
 			gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
 			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
 			gl.drawArrays(gl.LINES, 0, pathData.length / 3);
-			
 			
 			// draw ball sprite
 			// ----------------

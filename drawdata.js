@@ -134,72 +134,233 @@ function getNetGeometry() {
 	return netData;
 };
 
+		
+function getLinesGeometry() {
+	
+	var lineData = [];
+	
+	var lineWidth = 0.0762; // 3" wide... doesn't need to be precise
+	
+	// base line, left
+	lineData.push(-11.88);
+	lineData.push(0);
+	lineData.push(4.11);
+	
+	lineData.push(-(11.88 - lineWidth));
+	lineData.push(0);
+	lineData.push(4.11);
+	
+	lineData.push(-11.88);
+	lineData.push(0);
+	lineData.push(-4.11);
+	
+	
+	lineData.push(-(11.88 - lineWidth));
+	lineData.push(0);
+	lineData.push(4.11);
+	
+	lineData.push(-(11.88 - lineWidth));
+	lineData.push(0);
+	lineData.push(-4.11);
+	
+	lineData.push(-11.88);
+	lineData.push(0);
+	lineData.push(-4.11);
+	
+	// base line left, centre notch (TODO)
+	
+	// base line, right
+	lineData.push(11.88);
+	lineData.push(0);
+	lineData.push(4.11);
+	
+	lineData.push(11.88 - lineWidth);
+	lineData.push(0);
+	lineData.push(4.11);
+	
+	lineData.push(11.88);
+	lineData.push(0);
+	lineData.push(-4.11);
+	
+	
+	lineData.push(11.88 - lineWidth);
+	lineData.push(0);
+	lineData.push(4.11);
+	
+	lineData.push(11.88 - lineWidth);
+	lineData.push(0);
+	lineData.push(-4.11);
+	
+	lineData.push(11.88);
+	lineData.push(0);
+	lineData.push(-4.11);
+	
+	// side line, top
+	lineData.push(-(11.88 - lineWidth));
+	lineData.push(0);
+	lineData.push(4.11);
+	
+	lineData.push(11.88 - lineWidth);
+	lineData.push(0);
+	lineData.push(4.11);
+	
+	lineData.push(-(11.88 - lineWidth));
+	lineData.push(0);
+	lineData.push(4.11 - lineWidth);
+	
+	lineData.push(11.88 - lineWidth);
+	lineData.push(0);
+	lineData.push(4.11);
+	
+	lineData.push(-(11.88 - lineWidth));
+	lineData.push(0);
+	lineData.push(4.11 - lineWidth);
+	
+	lineData.push(11.88 - lineWidth);
+	lineData.push(0);
+	lineData.push(4.11 - lineWidth);
+	
+	// side line, bottom
+	lineData.push(-(11.88 - lineWidth));
+	lineData.push(0);
+	lineData.push(-4.11);
+	
+	lineData.push(11.88 - lineWidth);
+	lineData.push(0);
+	lineData.push(-4.11);
+	
+	lineData.push(-(11.88 - lineWidth));
+	lineData.push(0);
+	lineData.push(-(4.11 - lineWidth));
+	
+	lineData.push(11.88 - lineWidth);
+	lineData.push(0);
+	lineData.push(-4.11);
+	
+	lineData.push(-(11.88 - lineWidth));
+	lineData.push(0);
+	lineData.push(-(4.11 - lineWidth));
+	
+	lineData.push(11.88 - lineWidth);
+	lineData.push(0);
+	lineData.push(-(4.11 - lineWidth));
+	
+	// service line, left
+	lineData.push(-6.4);
+	lineData.push(0);
+	lineData.push(4.11);
+	
+	lineData.push(-(6.4 - lineWidth));
+	lineData.push(0);
+	lineData.push(4.11);
+	
+	lineData.push(-6.4);
+	lineData.push(0);
+	lineData.push(-4.11);
+	
+	
+	lineData.push(-(6.4 - lineWidth));
+	lineData.push(0);
+	lineData.push(4.11);
+	
+	lineData.push(-(6.4 - lineWidth));
+	lineData.push(0);
+	lineData.push(-4.11);
+	
+	lineData.push(-6.4);
+	lineData.push(0);
+	lineData.push(-4.11);
+	
+	
+	// service line, right
+	lineData.push(6.4);
+	lineData.push(0);
+	lineData.push(4.11);
+	
+	lineData.push(6.4 - lineWidth);
+	lineData.push(0);
+	lineData.push(4.11);
+	
+	lineData.push(6.4);
+	lineData.push(0);
+	lineData.push(-4.11);
+	
+	
+	lineData.push(6.4 - lineWidth);
+	lineData.push(0);
+	lineData.push(4.11);
+	
+	lineData.push(6.4 - lineWidth);
+	lineData.push(0);
+	lineData.push(-4.11);
+	
+	lineData.push(6.4);
+	lineData.push(0);
+	lineData.push(-4.11);
+	
+	
+	var halfLineWidth = lineWidth / 2.0;
+	// service line, centre
+	lineData.push(-(6.4 - halfLineWidth));
+	lineData.push(0);
+	lineData.push(-lineWidth);
+	
+	lineData.push(6.4 - halfLineWidth);
+	lineData.push(0);
+	lineData.push(-halfLineWidth);
+	
+	lineData.push(-(6.4 - halfLineWidth));
+	lineData.push(0);
+	lineData.push(halfLineWidth);
+	
+	lineData.push(6.4 - halfLineWidth);
+	lineData.push(0);
+	lineData.push(-halfLineWidth);
+	
+	lineData.push(-(6.4 - halfLineWidth));
+	lineData.push(0);
+	lineData.push(halfLineWidth);
+	
+	lineData.push(6.4 - halfLineWidth);
+	lineData.push(0);
+	lineData.push(halfLineWidth);
+	
+	return lineData;
+};
+
 function getCourtGeometry() {
 	
-	var courtData = getNetGeometry();
+	var courtData = [];
 	
-	// centre service line
-	courtData.push(-6.4);
+	// We're going outside the actual playing surface with this
+	var buffer = 2.0;
+		
+	// Tri 0
+	courtData.push(-(11.88 + buffer));
 	courtData.push(0);
-	courtData.push(0);
-	// p1
-	courtData.push(6.4);
-	courtData.push(0);
-	courtData.push(0);
+	courtData.push(-(4.11 + buffer));
 	
-	// left service line
-	courtData.push(-6.4);
+	courtData.push( (11.88 + buffer));
 	courtData.push(0);
-	courtData.push(-4.11);
-	// p1
-	courtData.push(-6.4);
-	courtData.push(0);
-	courtData.push(4.11);
+	courtData.push(-(4.11 + buffer));
 	
-	// right service line
-	courtData.push(6.4);
+	courtData.push(-(11.88 + buffer));
 	courtData.push(0);
-	courtData.push(-4.11);
-	// p1
-	courtData.push(6.4);
-	courtData.push(0);
-	courtData.push(4.11);
+	courtData.push( (4.11 + buffer));
 	
-	// left side line
-	courtData.push(-11.88); // 5.48 + 6.4
-	courtData.push(0);
-	courtData.push(-4.11);
-	// p1
-	courtData.push(11.88);
-	courtData.push(0);
-	courtData.push(-4.11);
 	
-	// right side line
-	courtData.push(-11.88); // 5.48 + 6.4
+	// Tri 1
+	courtData.push( (11.88 + buffer));
 	courtData.push(0);
-	courtData.push(4.11);
-	// p1
-	courtData.push(11.88);
-	courtData.push(0);
-	courtData.push(4.11);
+	courtData.push(-(4.11 + buffer));
 	
-	// left baseline
-	courtData.push(-11.88); // 5.48 + 6.4
+	courtData.push( (11.88 + buffer));
 	courtData.push(0);
-	courtData.push(-4.11);
-	// p1
-	courtData.push(-11.88);
-	courtData.push(0);
-	courtData.push(4.11);
+	courtData.push( (4.11 + buffer));
 	
-	// right baseline
-	courtData.push(11.88); // 5.48 + 6.4
+	courtData.push(-(11.88 + buffer));
 	courtData.push(0);
-	courtData.push(-4.11);
-	// p1
-	courtData.push(11.88);
-	courtData.push(0);
-	courtData.push(4.11);
+	courtData.push( (4.11 + buffer));
 	
 	return courtData;
 };

@@ -19,16 +19,16 @@ var SPRITE_VERTEX_SOURCE = [
 var SPRITE_FRAGMENT_SOURCE = [
     'precision highp float;',        
 
-'varying vec2 v_texCoord;',		
-'uniform sampler2D u_spriteMap;',
-
-'void main (void) {',      
+	'varying vec2 v_texCoord;',		
+	'uniform sampler2D u_spriteMap;',
+	
+	'void main (void) {',      
 
 	'gl_FragColor = texture2D(u_spriteMap, v_texCoord).rgba;',
 '}'
 ].join('\n');
 
-var LINES_VERTEX_SOURCE = [
+var SIMPLE_VERTEX_SOURCE = [
     'precision highp float;',
 
     'attribute vec3 a_position;',
@@ -49,4 +49,18 @@ var LINES_FRAGMENT_SOURCE = [
 
         'gl_FragColor = vec4(0.2, 0.2, 0.2, 1.0);',
     '}'
+].join('\n');
+
+// use with the lines vertex shader
+var TRIS_FRAGMENT_SOURCE = [
+	'precision highp float;',
+	
+	'uniform vec4 u_colour;',
+	
+    'void main (void) {',            
+
+        'gl_FragColor = u_colour;',
+    '}'
+
+
 ].join('\n');
