@@ -1,7 +1,7 @@
-1. Full areodynamics: Lift, magnus effect, air resistance on vertical, turbulence
+1. Full areodynamics: Lift/magnus effect, turbulence(?)
  => https://twu.tennis-warehouse.com/learning_center/aerodynamics2.php.
-2. Account for width of lines.
-3. Draw court polygonally.
+ => http://spiff.rit.edu/richmond/baseball/traj/traj.html
 4. Camera pan.
-5. Ball "follow" camera.
+5. Draw ball path cylindrically
+6. Make the html layout cleaner!
 
