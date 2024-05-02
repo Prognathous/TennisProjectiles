@@ -133,9 +133,10 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			var inc_t = 0.0001;
 			for (var t = 0; t <= deltaTime; t += inc_t) {
 
-				pathData.push(ballPosition.x);
-				pathData.push(ballPosition.y);
-				pathData.push(ballPosition.z);
+				var startPosition = Object.assign({}, ballPosition);
+				// pathData.push(ballPosition.x);
+				// pathData.push(ballPosition.y);
+				// pathData.push(ballPosition.z);
 				
 				// vertical component
 				// ------------------							
@@ -163,10 +164,44 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 				var zdist = horizDist * Math.sin(theta);				
 				ballPosition.x += horizDist * Math.cos(theta);
 				ballPosition.z += horizDist * Math.sin(theta);
-							
-				pathData.push(ballPosition.x);
+				
+				// build ribbon between the two points along the direction of motion
+				var deltaX = ballPosition.x - startPosition.x,
+					deltaZ = ballPosition.z - startPosition.z;
+					
+				var pathWidth = (BALL_RADIUS * 2.0) / 3.0;
+				var thetaPath = Math.atan(deltaX / deltaZ);
+				var offsX = pathWidth * Math.cos(thetaPath),
+					offsZ = pathWidth * Math.sin(thetaPath);
+
+				pathData.push(startPosition.x - offsX);
+				pathData.push(startPosition.y);
+				pathData.push(startPosition.z - offsZ);
+				
+				pathData.push(ballPosition.x - offsX);
 				pathData.push(ballPosition.y);
-				pathData.push(ballPosition.z);
+				pathData.push(ballPosition.z - offsZ);
+				
+				pathData.push(startPosition.x + offsX);
+				pathData.push(startPosition.y);
+				pathData.push(startPosition.z + offsZ);
+				
+				
+				pathData.push(ballPosition.x - offsX);
+				pathData.push(ballPosition.y);
+				pathData.push(ballPosition.z - offsZ);
+				
+				pathData.push(startPosition.x + offsX);
+				pathData.push(startPosition.y);
+				pathData.push(startPosition.z + offsZ);
+				
+				pathData.push(ballPosition.x + offsX);
+				pathData.push(ballPosition.y);
+				pathData.push(ballPosition.z + offsZ);
+							
+				// pathData.push(ballPosition.x);
+				// pathData.push(ballPosition.y);
+				// pathData.push(ballPosition.z);
 				
 				// check if the ball has hit the net...
 				if ((ballPosition.x >= 0) && (ballPosition.x <= BALL_RADIUS)) {
@@ -256,6 +291,13 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
             gl.drawArrays(gl.TRIANGLES, 0, netCordData.length / 3);
 			
+			// draw ball path
+			// --------------
+			gl.uniform4f(simpleProgram.getUniformLocation('u_colour'), 0.75, 0.75, 0.1, 1.0);
+			gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
+			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
+			gl.drawArrays(gl.TRIANGLES, 0, pathData.length / 3);
+			
 			// draw net posts
 			// --------------
 			gl.uniform4f(simpleProgram.getUniformLocation('u_colour'), 0.7, 0.3, 0.3, 1.0);
@@ -270,7 +312,8 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			gl.drawArrays(gl.TRIANGLES, 0, netPostData.length / 3);			
 						
 			
-			// draw lines
+			// draw court lines
+			// ----------------
 			modelMatrix[14] = 0;
 			// sort the lines against the court...			
             gl.useProgram(simpleProgram.getProgram());
@@ -281,14 +324,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			gl.uniform4f(simpleProgram.getUniformLocation('u_colour'), 0.0, 0.0, 0.0, 0.6);
 			gl.bindBuffer(gl.ARRAY_BUFFER, netBuffer);            
 			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
-            gl.drawArrays(gl.LINES, 0, netData.length / 3);
-
-			// draw ball path
-			// --------------
-			gl.uniform4f(simpleProgram.getUniformLocation('u_colour'), 0.75, 0.75, 0.1, 1.0);
-			gl.bindBuffer(gl.ARRAY_BUFFER, pathBuffer);
-			gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * SIZE_OF_FLOAT, 0);
-			gl.drawArrays(gl.LINES, 0, pathData.length / 3);
+            gl.drawArrays(gl.LINES, 0, netData.length / 3);			
 			
 			// draw ball sprite
 			// ----------------
