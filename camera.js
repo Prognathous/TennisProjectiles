@@ -26,6 +26,7 @@ var Camera = function () {
 		pitch: pitch
 	};
 	var ballCameraData = {
+		target: [ 0, 0, 0 ],
 		targetDistance: 0.75,
 		yaw: yaw,
 		pitch: pitch
@@ -43,8 +44,8 @@ var Camera = function () {
 		ballCameraData.pitch = pitch;
 		
 		cameraType = COURT_CAMERA;
-		cameraTarget = [ 0, 0, 0 ];
 		
+		cameraTarget = courtCameraData.target;		
 		targetDistance = courtCameraData.targetDistance;
 		yaw = courtCameraData.yaw;
 		pitch = courtCameraData.pitch;
@@ -58,10 +59,11 @@ var Camera = function () {
 		courtCameraData.targetDistance = targetDistance;
 		courtCameraData.yaw = yaw;
 		courtCameraData.pitch = pitch;
+		courtCameraData.target = cameraTarget;
 		
 		cameraType = BALL_CAMERA;
-		cameraTarget = ballPosition;
 		
+		cameraTarget = ballPosition;
 		targetDistance = ballCameraData.targetDistance;
 		yaw = ballCameraData.yaw;
 		pitch = ballCameraData.pitch;
@@ -79,10 +81,12 @@ var Camera = function () {
 	};
 		
 	var clamp = function (x, min, max) {
+		
         return Math.min(Math.max(x, min), max);
     };
 	
 	var epsilon = function (x) {
+		
         return Math.abs(x) < 0.000001 ? 0 : x;
     };
 		
@@ -103,7 +107,25 @@ var Camera = function () {
         pitch += deltaPitch;
         pitch = clamp(pitch, MIN_PITCH, MAX_PITCH);
         updated = true;
-    };		
+    };
+
+	this.pan = function (deltaX, deltaY) {
+		
+		deltaX *= 2;
+		deltaY *= 2;
+		
+		var view = this.getViewMatrix();
+		
+		cameraTarget[0] += view[0] * deltaX;
+		cameraTarget[1] += view[4] * deltaX;
+		cameraTarget[2] += view[8] * deltaX;
+		
+		cameraTarget[0] += view[1] * deltaY;
+		cameraTarget[1] += view[5] * deltaY;
+		cameraTarget[2] += view[9] * deltaY;
+		
+		updated = true;
+	};
 	
     this.getPosition = function () {
 		
@@ -133,6 +155,8 @@ var Camera = function () {
             orbitTranslationMatrix[12] = -cameraTarget[0];
             orbitTranslationMatrix[13] = -cameraTarget[1];
             orbitTranslationMatrix[14] = -cameraTarget[2];
+			
+			console.log(JSON.stringify(cameraTarget));
 			
             premultiplyMatrix(viewMatrix, viewMatrix, orbitTranslationMatrix);
             premultiplyMatrix(viewMatrix, viewMatrix, yRotationMatrix);

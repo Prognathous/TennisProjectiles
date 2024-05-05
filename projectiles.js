@@ -409,7 +409,8 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 
 	// camera handling
     var NONE = 0,
-        ORBITING = 1;		
+        ORBITING = 1,
+		PANNING = 2;
 	var MOUSE_SENSITIVITY = 1.0;	
 	
     var main = function () {
@@ -473,14 +474,25 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
         simulatorCanvas.addEventListener('mousedown', function (event) {
 			
             event.preventDefault();
-
+			
+			switch (event.button) {
+				case 0: 
+					mode = ORBITING; 
+					simulatorCanvas.style.cursor = 'grabbing';
+					break;
+				case 1: 
+					mode = PANNING; 
+					simulatorCanvas.style.cursor = 'all-scroll';
+					break;
+				default: 
+				return;
+			}
+			
             var mousePosition = getMousePosition(event, simulatorCanvas);
             var mouseX = mousePosition.x,
                 mouseY = mousePosition.y;
 			
             var point = unproject(camera.getViewMatrix(), mouseX, mouseY, width, height);
-            
-			mode = ORBITING;
 			lastMouseX = mouseX;
 			lastMouseY = mouseY;
         });
@@ -495,16 +507,8 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			
             var point = unproject(camera.getViewMatrix(), mouseX, mouseY, width, height);
 
-            if (mode === ORBITING) {
-				
-                simulatorCanvas.style.cursor = '-webkit-grabbing';
-                simulatorCanvas.style.cursor = '-moz-grabbing';
-                simulatorCanvas.style.cursor = 'grabbing';
-            } 
-			else {
-				
-                simulatorCanvas.style.cursor = '-webkit-grab';
-                simulatorCanvas.style.cursor = '-moz-grab';
+            if (mode === NONE) {
+
                 simulatorCanvas.style.cursor = 'grab';
             }
 
@@ -515,6 +519,13 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
                 lastMouseX = mouseX;
                 lastMouseY = mouseY;
             }
+			if (mode === PANNING) {
+								
+				camera.pan(-(mouseX - lastMouseX) / width * MOUSE_SENSITIVITY, (mouseY - lastMouseY) / height * MOUSE_SENSITIVITY);
+				
+				lastMouseX = mouseX;
+                lastMouseY = mouseY;
+			}
         });
 
         simulatorCanvas.addEventListener('mouseup', function (event) {
@@ -566,8 +577,9 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 						
 			simulator.updateBallPath(deltaTime / 2);
 		
-			var cameraTarget = ballCameraSelectEl.checked ? simulator.getBallPosition() : [ 0, 0, 0 ];
-			camera.updateTarget(cameraTarget);
+			if (ballCameraSelectEl.checked) {
+				camera.updateTarget(simulator.getBallPosition());
+			}
 			
             simulator.render(deltaTime, projectionMatrix, camera.getViewMatrix());
 
