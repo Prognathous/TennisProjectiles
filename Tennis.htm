@@ -9,89 +9,96 @@
 		<style>
 		#leftbox {
             float: left;
-            width: 400px;
+            width: 440px;
             height: 100%;
-        }
- 
+        } 
         #middlebox {
             float: left;
             width: 720px;
             height: 100%;
         }
- 
         #rightbox {
             float: left;
-            width: 130px;
+            width: 130px;			
             height: 100%;
         }
+		
+		.form-fields {
+			display: table;
+		}		
+		.form-p {
+			display: table-row;
+		}
+		.form-field-span,
+		.form-field-label,
+		.form-field-control,
+		.form-field-input {
+			display: table-cell;
+			padding: 3px 6px;
+		}
 		</style>
 	</head>
 
     <body onload="setupPage()">
-		<!-- div class="float-container" -->
 		<div id="leftbox">
 			<p>
 				<a href="https://twu.tennis-warehouse.com/learning_center/aerodynamics2.php">
 					https://twu.tennis-warehouse.com/learning_center/aerodynamics2.php
-				</a>
-			</p>
+				</a>			
 			<p>
 				<a href="https://www.researchgate.net/publication/313199404_The_drag_coefficient_of_tennis_balls">
 					https://www.researchgate.net/publication/313199404_The_drag_coefficient_of_tennis_balls
 				</a>
 			</p>
-			<form id="parameters">				
-				<p>
-					Launch height:
-					<input id="launchHeight" type="number" min="0" max="4.0" value="2.718" step="0.001" style="vertical-align: middle;" onchange="onLaunchHeightChanged(this.value);"/>
-					(m) 
-					<span id="feetAndInches" />
+			<form id="parameters" class="form-fields">
+				<p class="form-p">
+					<label class="form-field-label">Launch height:</label>
+					<input class="form-field-input" id="launchHeight" type="number" min="0" max="4.0" value="2.718" step="0.001" style="vertical-align: middle;" onchange="onLaunchHeightChanged(this.value);"> (m)</input>
+					<span class="form-field-span" id="feetAndInches" />
 				</p>
-				<p>
-					Launch angle:
-					<input id="launchAngle" type="number" min="-30" max="30.0" value="-4.8" step="0.1" style="vertical-align: middle;" onchange="onLaunchAngleChanged(this.value);"/>
-					(deg)
+				<p class="form-p">
+					<label class="form-field-label">Launch angle:</label>
+					<input class="form-field-input" id="launchAngle" type="number" min="-30" max="30.0" value="-4.8" step="0.1" style="vertical-align: middle;" onchange="onLaunchAngleChanged(this.value);"> (deg)</input>
 				</p>
-				<p>
-					Launch speed:
-					<input id="launchSpeed" type="number" min="50" max="163.0" value="120.0" step="0.5" style="vertical-align: middle;" onchange="onLaunchSpeedChanged(this.value);"/>
-					(mph)
+				<p class="form-p">
+					<label class="form-field-label">Launch speed:</label>
+					<input class="form-field-input" id="launchSpeed" type="number" min="50" max="163.0" value="120.0" step="0.5" style="vertical-align: middle;" onchange="onLaunchSpeedChanged(this.value);"> (mph)</input>					
 				</p>
-				<p>
-					Serve offset:
-					<input id="baselineOffset" type="number" min="0" max="4.11" value="1.0" step="0.1" style="vertical-align: middle;" onchange="onBaselineOffsetChanged(this.value);"/>
-					(m)
+				<p class="form-p">
+					<label class="form-field-label">Serve offset:</label>
+					<input class="form-field-input" id="baselineOffset" type="number" min="0" max="4.11" value="1.0" step="0.1" style="vertical-align: middle;" onchange="onBaselineOffsetChanged(this.value);"> (m)</input>					
 				</p>
-				<p>
-					Target offset:
-					<input id="targetOffset" type="number" min="0" max="4.11" value="0.2" step="0.1" style="vertical-align: middle;" onchange="onTargetOffsetChanged(this.value);"/>
-					(m)
+				<p class="form-p">
+					<label class="form-field-label">Target offset:</label>
+					<input class="form-field-input" id="targetOffset" type="number" min="0" max="4.11" value="0.2" step="0.1" style="vertical-align: middle;" onchange="onTargetOffsetChanged(this.value);"> (m)</input>
 				</p>
-				<p>
-					Ball mass:
-					<input id="ballMass" type="number" min="0.01" max="0.07" value="0.057" step="0.001" style="vertical-align: middle;" onchange="onBallMassChanged(this.value);"/>
-					(kg)
+				<p class="form-p">
+					<label class="form-field-label">Ball mass:</label>
+					<input class="form-field-input" id="ballMass" type="number" min="0.01" max="0.07" value="0.057" step="0.001" style="vertical-align: middle;" onchange="onBallMassChanged(this.value);"> (kg)</input>					
 				</p>
-				<p>
-					Ball radius:
-					<input id="ballRadius" type="number" min="0.02" max="0.05" value="0.0335" step="0.0001" style="vertical-align: middle;" onchange="onBallRadiusChanged(this.value);"/>
-					(kg)
+				<p class="form-p">
+					<label class="form-field-label">Ball radius:</label>
+					<input class="form-field-input" id="ballRadius" type="number" min="0.02" max="0.05" value="0.0335" step="0.0001" style="vertical-align: middle;" onchange="onBallRadiusChanged(this.value);"> (kg)</input>					
 				</p>
-				<p>
-					Ball cross section area: 
-					<span id="ballCrossSectionArea">0.00353</span>
-					(m²)
+				<p class="form-p">
+					<label class="form-field-label">Ball cross section area:</label>
+					<span class="form-field-span">
+						<label id="ballCrossSectionArea">0.00353</label>
+						<label> (m²)</label>
+					</span>
 				</p>
-				<p>						
-					Drag coefficient: 
-					<input id="dragCoefficient" type="number" min="0.5" max="0.7" value="0.55" step="0.01" style="vertical-align: middle;" onchange="onDragCoefficientChanged(this.value);"/>
+				<p class="form-p">
+					<label class="form-field-label">Drag coefficient:</label>
+					<input class="form-field-input" id="dragCoefficient" type="number" min="0.5" max="0.7" value="0.55" step="0.01" style="vertical-align: middle;" onchange="onDragCoefficientChanged(this.value);"></input>
 				</p>
-				<p>						
-					Air density "ρ": 
-					<input id="airDensity" type="number" min="0.0" max="3.0" value="1.21" step="0.01" style="vertical-align: middle;" onchange="onAirDensityChanged(this.value);"/>
-					(kg/m³)
+				<p class="form-p">
+					<label class="form-field-label">Air density "ρ":</label>
+					<input class="form-field-input" id="airDensity" type="number" min="0.0" max="3.0" value="1.21" step="0.01" style="vertical-align: middle;" onchange="onAirDensityChanged(this.value);"> (kg/m³)</input>
 				</p>
-				<p>Gravity: -9.80665m/s²</p>
+				<p class="form-p">
+					<label class="form-field-label">Gravity:</label>
+					<label class="form-field-label">-9.80665m/s²</label>
+				</p>
 			</form>
 		</div>
 		<div id="middlebox">

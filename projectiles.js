@@ -134,9 +134,6 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			for (var t = 0; t <= deltaTime; t += inc_t) {
 
 				var startPosition = Object.assign({}, ballPosition);
-				// pathData.push(ballPosition.x);
-				// pathData.push(ballPosition.y);
-				// pathData.push(ballPosition.z);
 				
 				// vertical component
 				// ------------------							
@@ -198,10 +195,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 				pathData.push(ballPosition.x + offsX);
 				pathData.push(ballPosition.y);
 				pathData.push(ballPosition.z + offsZ);
-							
-				// pathData.push(ballPosition.x);
-				// pathData.push(ballPosition.y);
-				// pathData.push(ballPosition.z);
+
 				
 				// check if the ball has hit the net...
 				if ((ballPosition.x >= 0) && (ballPosition.x <= BALL_RADIUS)) {
