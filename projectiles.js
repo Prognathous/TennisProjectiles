@@ -470,6 +470,11 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 				y: event.clientY - boundingRect.top
 			};
 		};
+		
+		var resetCamera = function () {
+			
+			camera.reset();
+		};
 
         simulatorCanvas.addEventListener('mousedown', function (event) {
 			
@@ -535,8 +540,7 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
         });
 
         simulatorCanvas.addEventListener('mouseout', function (event) {
-			
-            // var from = event.relatedTarget || event.toElement;
+            
 			mode = NONE;
         });
 		
@@ -567,6 +571,12 @@ var INITIAL_HEIGHT = 2.7178,			// 8'11" contact height for someone around 6'0"
 			else {
 				camera.setCourtCamera();
 			}
+		});
+		
+		var resetCameraEl = document.getElementById('resetCamera');
+		resetCameraEl.addEventListener('click', function () {
+			
+			camera.reset();
 		});
 
         var previousTime = (new Date()).getTime();

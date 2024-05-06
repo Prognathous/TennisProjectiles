@@ -36,6 +36,30 @@
 			display: table-cell;
 			padding: 3px 6px;
 		}
+		
+		.reset-button {
+			border: none;
+			color: white;
+			display: table-cell;
+			padding: 3px 6px;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+			font-size: 14px;
+			margin: 4px 2px;
+			cursor: pointer;
+			background-color: white; 
+			color: black; 
+			border: 2px solid #04A06D;			
+		}
+		.reset-button:hover {
+			background-color: #04A06D;
+			color: white;
+		}
+		.reset-button:active {
+			background-color: #04AA6D;
+			color: white;
+		}
 		</style>
 	</head>
 
@@ -117,10 +141,11 @@
 			</p>
 		</div>
 		<div id="rightbox">
-			<form id="cameraSettings">
+			<form id="cameraSettings" class="form-fields">				
 				<input type="checkbox" id="ballCameraSelect" name="ballCam" />
 				<label for="ballCam">Use ball camera</label>
 			</form>
+			<button id="resetCamera" class="reset-button" type="button">Reset Camera</button>
 		</div>
 		
 		<script>			

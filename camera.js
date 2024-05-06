@@ -1,11 +1,11 @@
 var Camera = function () {
 	
     var MIN_CAMERA_DISTANCE = 0.1,
-		MAX_CAMERA_DISTANCE = 30,
-        // INITIAL_YAW = 0.4,		
+		MAX_CAMERA_DISTANCE = 30,        
         INITIAL_YAW = 4.6769353,
-        // INITIAL_PITCH = 0.2,
         INITIAL_PITCH = 0.036416666666,
+		INITIAL_COURTCAMERA_DIST = 7.2,
+		INITIAL_BALLCAMERA_DIST = 0.75,
         MIN_PITCH = 0.001,
         MAX_PITCH = Math.PI;
 		
@@ -21,13 +21,13 @@ var Camera = function () {
 		BALL_CAMERA = 1;
 		
 	var courtCameraData = {
-		targetDistance: 7.2,
+		targetDistance: INITIAL_COURTCAMERA_DIST,
 		yaw: yaw,
 		pitch: pitch
 	};
 	var ballCameraData = {
 		target: [ 0, 0, 0 ],
-		targetDistance: 0.75,
+		targetDistance: INITIAL_BALLCAMERA_DIST,
 		yaw: yaw,
 		pitch: pitch
 	};
@@ -61,13 +61,30 @@ var Camera = function () {
 		courtCameraData.pitch = pitch;
 		courtCameraData.target = cameraTarget;
 		
-		cameraType = BALL_CAMERA;
+		cameraType = BALL_CAMERA;		
 		
 		cameraTarget = ballPosition;
 		targetDistance = ballCameraData.targetDistance;
 		yaw = ballCameraData.yaw;
 		pitch = ballCameraData.pitch;
 		
+		updated = true;
+	};
+	
+	this.reset = function () {
+		
+		yaw = INITIAL_YAW;
+		pitch = INITIAL_PITCH;
+
+		if (cameraType == COURT_CAMERA) {
+			
+			targetDistance = INITIAL_COURTCAMERA_DIST;
+			cameraTarget = [ 0, 0, 0 ];
+		}
+		else if (cameraType == BALL_CAMERA) {
+			
+			targetDistance = INITIAL_BALLCAMERA_DIST;
+		}
 		updated = true;
 	};
 	
@@ -155,8 +172,6 @@ var Camera = function () {
             orbitTranslationMatrix[12] = -cameraTarget[0];
             orbitTranslationMatrix[13] = -cameraTarget[1];
             orbitTranslationMatrix[14] = -cameraTarget[2];
-			
-			console.log(JSON.stringify(cameraTarget));
 			
             premultiplyMatrix(viewMatrix, viewMatrix, orbitTranslationMatrix);
             premultiplyMatrix(viewMatrix, viewMatrix, yRotationMatrix);
